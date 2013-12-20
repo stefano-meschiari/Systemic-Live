@@ -1,0 +1,119 @@
+#systems {
+	width:300px;
+}
+
+#toolbar_top {
+	padding:8px;
+	background-color:#F7F7F7;
+	color:gray;
+	border-bottom: 1px solid #BDBEC2;
+	vertical-align:middl;
+	margin-bottom:10px;
+}
+
+.plot {
+	border-right: 1px solid #ddd;
+	border-left: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;	
+	margin-bottom:10px;
+
+}
+
+#orbitalplot {	
+	margin-top:10px;
+}
+
+#orbit {
+	text-align:center;
+}
+
+div.separator {
+	border-top:1px solid #BDBEC2;
+	margin-top:8px;
+	height:8px;
+}
+
+div.clearseparator {
+	height:10px
+}
+
+input.element {
+	margin-right:20px;
+}
+
+#zoomLegend {
+	text-align:center;
+}
+#zoomLine {
+	width:200px;
+	height:4px;
+	border-bottom: 1px solid #cccccc;
+	border-right: 1px solid #cccccc;
+	border-left: 1px solid #cccccc;		
+	display:inline-block;
+}
+#zoomText {
+	font-size:80%;
+	color:#cccccc;	
+}
+
+
+#stats th {
+	text-align:right;
+}
+
+div.planetPanel {
+	display:none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;	
+}
+
+div.offsetPanel {
+	display:none;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	-khtml-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;	
+}
+
+.slider {
+	width:100px;
+}
+
+.planetLabel {
+	margin-bottom:10px;
+	margin-top:20px;
+}
+
+th {
+	font-size:13px;
+}
+
+td {
+	font-size:13px;
+}
+
+.tb {
+	width:100px;
+}
+
+.extra {
+	text-align:center;
+	font-size:12px;
+}
+
+#busy {
+	display:none;
+}
+
+.popover {
+	max-width:500px;
+	width:300px;
+	font-weight:normal;
+}
