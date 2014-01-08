@@ -1,3 +1,8 @@
+* How to build
+** Run lua/jsparse.lua to parse the functions
+** Run make -f Makefile.js clean, then make -f Makefile.js twice (to get all the symbols)
+** 
+
 * Clean up code
 - [ ] Clean up and comment HTML/PHP template
 - [ ] Clean up Javascript, separate calculations and UI

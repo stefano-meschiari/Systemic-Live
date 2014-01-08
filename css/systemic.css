@@ -117,3 +117,7 @@ td {
 	width:300px;
 	font-weight:normal;
 }
+
+#output {
+  width:100%;
+}

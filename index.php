@@ -4,7 +4,7 @@ $elements = array("<strong>Period</strong> [days]", "<strong>Mass</strong> [Mj]"
 
 $MAX_SETS = 7;
 $MAX_PLANETS = 6;
-
+$last_updated = date ("F d Y", filemtime('index.php'));
 ?>
 <!doctype html>
 <!-- manifest="cache.manifest.php"  -->
@@ -22,7 +22,7 @@ $MAX_PLANETS = 6;
 
 
 
-<script src="https://code.jquery.com/jquery.js"></script>
+<script src="https://code.jquery.com/jquery.min.js"></script>
 <script src="bootstrap/js/bootstrap.min.js"></script>
 <script src="js/jcanvas.min.js"></script>
 
@@ -44,9 +44,9 @@ var Module = {
 };
 </script>
 
-<script type="text/javascript" src="js/libsystemic.js?v=0.2"></script>
-<script type="text/javascript" src="js/systemic.js?v=0.2"></script>
-<script type="text/javascript" src="js/help.js?v=0.2"></script>
+<script type="text/javascript" src="js/libsystemic.min.js?v=0.2"></script>
+<script type="text/javascript" src="js/systemic.min.js?v=0.2"></script>
+<script type="text/javascript" src="js/help.min.js?v=0.2"></script>
 <script src="select2/select2.min.js"></script>
 <script src="highcharts/js/highcharts.js"></script>
 <script src="highcharts/js/highcharts-more.js"></script>
@@ -64,7 +64,12 @@ var Module = {
 			    Systemic Live <span class="caret"></span>
 			  </button>
 			  <ul class="dropdown-menu" role="menu">
-			    <li><a href="http://www.stefanom.org" target="_new">(c) 2013, Stefano Meschiari</a></li>
+			    <li><a href="http://www.stefanom.org" target="_new">(c) 2013-2014, Stefano Meschiari</a></li>
+          <li class="divider"></li>          
+          <li><a href="https://github.com/stefano-meschiari/Systemic-Live">Fork me on Github!</a></li>
+          <li><a href="#">Last updated: <strong><?= $last_updated ?></strong></a></li>
+          <li class="divider"></li>
+          <li><a href="#" onClick="K.benchmark();">Benchmark</a><li>
 			    <li class="divider"></li>
 			    <li><a href="http://stefanom.org/?systemic" target="_new">Full version of Systemic</a></li>
 			    <li><a href="http://goo.gl/ZDcj9F" target="_new">Papers about Systemic</a></li>
@@ -84,6 +89,12 @@ var Module = {
 		</div>
 </div>
 <div class="container">
+  <div id="output_panel" class="panel panel-default" style="display:none">
+    <div class="panel-heading">Message output <a href="#" onClick="$('#output_panel').hide();">[close]</a></div>
+    <div class="panel-body">
+      <textarea id="output"></textarea>
+    </div>  
+  </div>
 <div class="row">
 	<div class="col-md-7">
 		<ul class="nav nav-tabs nav-tabs-xs" id="rvtabs">
@@ -236,6 +247,6 @@ var Module = {
 </div>
 </div>
 <div class="clearseparator"></div>
-<script type="text/javascript" src="js/ui.js"></script>
+<script type="text/javascript" src="js/ui.min.js"></script>
 </body>
 </html>
