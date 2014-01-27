@@ -22,8 +22,8 @@ $last_updated = date ("F d Y", filemtime('index.php'));
   <body>
     <script src="https://code.jquery.com/jquery.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
-    <script src="js/jcanvas.min.js"></script>
-
+    <script src="js/jcanvas.min.js" defer></script>
+    <script src="js/underscore-min.js"></script>
     <script>
      var Module = {
        preRun: [],
@@ -258,7 +258,8 @@ $last_updated = date ("F d Y", filemtime('index.php'));
           <div class="clearseparator"></div>
           <div class="separator"></div>
           <h5>SHARE</h5>
-          <input class="share" id="share">
+          <input class="share" id="share" readonly>
+          <em class="hint">Copy and paste this URL to retrieve the current fit.</em>
         </div>
       </div>
       <div class="clearseparator"></div>

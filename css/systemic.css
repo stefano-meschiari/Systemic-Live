@@ -125,3 +125,7 @@ td {
 #share {
   width:100%;
 }
+
+.hint {
+  color:gray;
+}

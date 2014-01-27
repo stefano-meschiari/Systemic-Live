@@ -211,7 +211,7 @@ $(document).ready(function(){
 			                  e.preventDefault();
 			                  K.setElement(i, j, parseFloat(this.value));
 		                }
-		            }
+		            };
 	          } (i, j));
 	          t.blur(function() {
 		            K.refresh('elements');
@@ -271,9 +271,18 @@ $(document).ready(function(){
     // Orbital zoom
     $("#zoomIn").click(function() { K.zoomInOut(+1); });
     $("#zoomOut").click(function() { K.zoomInOut(-1); });
-    
+
+    // Select all when clicking on share box
+    $("#share").click(function() { this.select(); });
+
     K.init();
-    K.loadSys("14Her.sys");
+    
+    if (_.parameter("sys")) {
+        K.loadFromURL();
+    } else {
+        K.loadSys("14Her.sys");
+    }
+    
 });
 
 // Activate offset sliders

@@ -1,3 +1,13 @@
+// Additional underscore.js utilities
+_.clone = function(obj) {
+    if (obj === undefined)
+        return obj;
+    return JSON.parse(JSON.stringify(obj));
+};
+
+_.parameter = function(name) {
+  return(decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null);
+};
 
 K = function() {
 	  // BEGIN_AUTO
@@ -352,6 +362,7 @@ K = function() {
 	  PSDATA = null;
 	  var NULL = null;
 	  var INTMETHOD = KEPLER;
+    var currentSystem = "14Her.sys";
 	  
 	  MAX_PLANETS = 6;
 	  MAX_ELEMENTS = 5;
@@ -372,14 +383,14 @@ K = function() {
 	  var refreshPSPlot = function() {
 		    var plotter = $("#psplot").highcharts();
 		    var samples = K_getPeriodogramAt(k, -1, 0);
-        console.log(samples);
+
 		    var data = [];
 		    for (var i = 0; i < samples; i++)
 			      data.push([Math.log(K_getPeriodogramAt(k, i, 0))/Math.LN10, K_getPeriodogramAt(k, i, 1),
 			                 K_getPeriodogramAt(k, i, 2)]);
-        console.log(data[0][2]);
+
 		    plotter.series[0].setData(data, true);
-		            console.log(data[0][2]);
+
 		    for (var i = 1; i <= 3; i++) {
 			      var fap_z = K_getPeriodogramAt(k, -2, i);
 			      plotter.series[i].setData([[data[0][0], fap_z], [data[data.length-1][0], fap_z]]);
@@ -575,8 +586,31 @@ K = function() {
 		    $("#mstar").text(K_getMstar(k));
 		    $("#epoch").text(K_getEpoch(k));
 	  };
-	  
-	  
+
+    var BASEURL = location.protocol + '//' + location.host + location.pathname;
+    var URLPARAMS = ['P', 'M', 'MA', 'E', 'L'];
+    
+	  var refreshShare = function() {
+        var url = BASEURL + "?";
+        url += "sys=" + encodeURI(currentSystem);
+        url += "&np=" + K_getNplanets(k);
+        var i;
+        for (i = 1; i <= K_getNplanets(k); i++)
+            for (j = PER; j <= LOP; j++) {
+                var v = K_getElement(k, i, j);
+                if (v != 0.)
+                    url += "&" + URLPARAMS[j] + i + "=" + v.toPrecision(8);
+            }
+        for (i = 0; i < MAX_SETS; i++)
+            if (K_getPar(k, i) != 0.)
+                url += '&o' + i + "=" + K_getPar(k, i);
+
+        if (_.parameter("debug"))
+            url += "&debug=true";
+        url += "&im=" + K_getIntMethod(k);
+        
+        $("#share").val(url);
+    };
 	  
 	  // Refreshes all plots
 	  var refresh = function(what) {
@@ -598,6 +632,8 @@ K = function() {
 			      refreshPSPlot();
 		    if (what.indexOf('orbit') != -1)				
 			      refreshOrbit();
+
+        refreshShare();
 	  };
 		
 	  var setRVPlot = function(type) {
@@ -665,7 +701,7 @@ K = function() {
 			      $("#offsetPanel_" + i).hide();
 		    for (var i = 1; i <= MAX_PLANETS; i++)
 			      $("#planet_" + i).hide();
-		    
+		    currentSystem = sysname;
 		    refresh();
 	  };
 	  
@@ -701,6 +737,28 @@ K = function() {
 		    $("#planet_" + n).hide();
 		    refresh(['rvline', 'elements', 'stats', 'psplot', 'orbit']);
 	  };
+
+    var loadFromURL = function() {
+        K.loadSys(_.parameter("sys"));
+        
+        var i, v;
+        var np = +(_.parameter("") || 0);
+        for (i = 1; i <= np; i++) {
+            K_addPlanet(k, NULL);
+            for (var j = 0; j < URLPARAMS.length; j++) {
+                v = +(_.parameter(URLPARAMS[j] + i) || 0.0);
+                K_setElement(k, i, j, v);
+            }
+        }
+
+        for (i = 0; i < MAX_SETS; i++) {
+             v = +(_.parameter('o' + i) || 0.0);
+             K_setPar(k, i, v);
+        }
+
+        K_setIntMethod(k, +(_.parameter('im') || KEPLER));
+        refresh();
+    };
 	  
 	  var setIntegrated = function(integ) {
 		    if (integ)
@@ -766,7 +824,7 @@ K = function() {
     };
     
     
-	  return {init:init, refresh:refresh, setBusy:setBusy, loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark,  k:function() { return k; }};
+	  return {init:init, refresh:refresh, setBusy:setBusy, loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark, loadFromURL: loadFromURL, k:function() { return k; }};
 } ();
 
 
