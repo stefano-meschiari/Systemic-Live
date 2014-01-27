@@ -1,0 +1,15 @@
+.btn {
+  display:none;
+}
+
+.slider {
+  display:none;
+}
+
+input[type="checkbox"] {
+  display:none;
+}
+
+li.active > a, li.active > a:focus {
+  border:0px solid white;
+}

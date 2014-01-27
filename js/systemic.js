@@ -376,9 +376,10 @@ K = function() {
 		    var data = [];
 		    for (var i = 0; i < samples; i++)
 			      data.push([Math.log(K_getPeriodogramAt(k, i, 0))/Math.LN10, K_getPeriodogramAt(k, i, 1),
-			                 K_getPeriodogramAt(k, i, 3)]);
+			                 K_getPeriodogramAt(k, i, 2)]);
+        console.log(data[0][2]);
 		    plotter.series[0].setData(data, true);
-		    
+		            console.log(data[0][2]);
 		    for (var i = 1; i <= 3; i++) {
 			      var fap_z = K_getPeriodogramAt(k, -2, i);
 			      plotter.series[i].setData([[data[0][0], fap_z], [data[data.length-1][0], fap_z]]);
@@ -386,7 +387,20 @@ K = function() {
 		    
 		    PSDATA = data;
 	  };
-	  
+
+    var eps = 1e-6;
+    
+    var getFAPforPeriod = function(P) {
+        if (!PSDATA)
+            return 0;
+        for (var i = 0; i < PSDATA.length; i++) {
+            if (Math.abs(PSDATA[i][0] - P) < eps) {
+                return PSDATA[i][2];
+            }
+        }
+        return 0;
+    };
+    
 	  var refreshRVPlot = function() {
 		    var plotter = $("#rvplot").highcharts();
 		    
@@ -560,7 +574,6 @@ K = function() {
 		    $("#data").text(K_getNsets(k) + " sets, " + K_getNdata(k) + " data points");
 		    $("#mstar").text(K_getMstar(k));
 		    $("#epoch").text(K_getEpoch(k));
-			  
 	  };
 	  
 	  
@@ -753,7 +766,7 @@ K = function() {
     };
     
     
-	  return {init:init, refresh:refresh, setBusy:setBusy, loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, benchmark:benchmark, k:function() { return k; }};
+	  return {init:init, refresh:refresh, setBusy:setBusy, loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark,  k:function() { return k; }};
 } ();
 
 

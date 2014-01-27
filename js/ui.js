@@ -98,7 +98,7 @@ $(document).ready(function(){
 	      tooltip: {
 	          enabled:true,
 	          formatter: function() {
-		            return 'Period: ' + Math.pow(10, this.x).toFixed(2) + ", power: " + this.y.toFixed(2);
+		            return 'Period: ' + Math.pow(10, this.x).toFixed(2) + ", power: " + this.y.toFixed(2) + "<br>Estimated false alarm probability: " + K.getFAPforPeriod(this.x).toPrecision(5);
 	          }
 	      },
 	      legend: {
@@ -111,7 +111,7 @@ $(document).ready(function(){
 	      xAxis: {
 	          title: {
 		            enabled: true,
-		            text: 'Period [d]',
+		            text: 'Period [d]'
 	          },
 	          labels: {
 		            formatter: function() {
