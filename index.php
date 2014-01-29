@@ -67,7 +67,11 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 		  <div class="btn-group pull-left" style="margin-top:4px">
 	  	  &nbsp;&nbsp;&nbsp;SYSTEM:&nbsp;
 		    <select class="combobox" id="systems">
-		      <?php include('systems.html'); ?>			
+		      <?php
+          $systems = file('systems.txt');
+          foreach ($systems as $sys)
+            echo "<option>" . trim($sys) . "</option>\n";
+          ?>			
 		    </select>
 		  </div>
 		  <div class="btn-group pull-right">
@@ -94,9 +98,7 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 	  	<button type="button" class="btn btn-info" id="help_top">
 	  		<span class="glyphicon .glyphicon glyphicon-question-sign"></span>
 	  	</button>
-			&nbsp;
-			<div id="busy"><img src="img/busy.gif"> <button class="btn btn-danger" id="stop">Stop</button></div>
-
+						
 		</div>
     </div>
     <div class="container">
@@ -105,6 +107,9 @@ $last_updated = date ("F d Y", filemtime('index.php'));
         <div class="panel-body">
           <textarea id="output"></textarea>
         </div>  
+      </div>
+      <div id="busy" class="alert alert-danger">
+        Computing... <button class="btn btn-danger" id="stop">Stop</button>
       </div>
       <div class="row">
 	      <div class="col-md-7">
@@ -116,14 +121,14 @@ $last_updated = date ("F d Y", filemtime('index.php'));
           <div class="box">
             <form id="phased-toolbox" class="navbar-form">
               <label for="phased-planet">Planet:</label>
-               <select id="phased-planet" class="form-control">
-                 <option>1</option>
-                 <option>2</option>
-                 <option>3</option>
-                 <option>4</option>
-                 <option>5</option>
-                 <option>6</option>
-               </select>
+              <select id="phased-planet" class="form-control">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+              </select>
             </form>
 		        <div id="rvplot" class="plot">
 		        </div>
@@ -147,13 +152,15 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 		      </div>
 	      </div>
 	      <div class="col-md-5">
-		      <div id="statistics">
-		        <h5>STATISTICS
-			        <div class="btn-group" style="float:right">
+		      <div id="statistics" class="panel panel-info">
+            <div class="panel-heading">
+		          STATISTICS
+			        <div class="btn-group btn-group-xs pull-right">
 			          <button type="button" class="btn btn-info btn-xs" id="help_statistics"><span class="glyphicon glyphicon-question-sign"></span></button>
 		            
 			        </div>
 		        </h5>
+            </div>
 		        <table class="table table-striped" id="stats">
 			        <tr>
 				        <th>Chi<sup>2</sup><sub>red</sub></th>
@@ -174,17 +181,21 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 				        <td id="epoch"></td>
 			        </tr>					
 		        </table>
-		        <input type="checkbox" id="integrated"> <label for="integrated">Dynamical integration</label>
+            <div class="panel-footer">
+              
+		          <input type="checkbox" id="integrated"> <label for="integrated">Dynamical integration</label>
+            </div>
 		      </div>
-		      <div class="separator"></div>
-		      <div>
-		        <h5>TELESCOPE OFFSETS 
-		          <div class="btn-group" style="float:right">
+
+		      <div class="panel panel-default">
+            <div class="panel-heading">
+		          TELESCOPE OFFSETS 
+		          <div class="btn-group pull-right">
 		            <button type="button" class="btn btn-info btn-xs" id="help_offsets"><span class="glyphicon glyphicon-question-sign"></span></button>
 		            
 		          </div>
-		        </h5>
-		        <div id="offsets">
+		        </div>
+		        <div id="offsets" class="panel-body">
 			        <?php
 			        for ($i = 0; $i < $MAX_SETS; $i++) {
 			        ?>
@@ -203,22 +214,22 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 			        ?>
 		        </div>
 		      </div>
-		      <div class="separator"></div>
-		      <div>
-		        <h5>PLANETS 
-			        
-			        <div style="float:right">
-			          <div class="btn-group">
-			            <button type="button" class="btn btn-default btn-xs" id="addPlanet"><span class="glyphicon glyphicon-tasks"></span> Add planet</button>
-			            <button type="button" class="btn btn-danger btn-xs" id="removePlanet"><span class="glyphicon glyphicon-minus-sign"></span> Remove planet</button>
-			          </div>
-			          <div class="btn-group">
-			            <button type="button" class="btn btn-info btn-xs" id="help_planets"><span class="glyphicon glyphicon-question-sign"></span></button>
-			            
-			          </div>
+
+		      <div class="panel panel-default">
+		        
+			      <div class="panel-heading">
+			        PLANETS
+			        <div class="btn-group pull-right">
+			          <button type="button" class="btn btn-default btn-xs" id="addPlanet"><span class="glyphicon glyphicon-tasks"></span> Add planet</button>
+			          <button type="button" class="btn btn-danger btn-xs" id="removePlanet"><span class="glyphicon glyphicon-minus-sign"></span> Remove planet</button>
+			          
+			          
+			          <button type="button" class="btn btn-info btn-xs" id="help_planets"><span class="glyphicon glyphicon-question-sign"></span></button>
+			          
 			        </div>
-		        </h5>
-		        <div id="planets">
+			        
+		        </div>
+		        <div id="planets" class="panel-body">
 			        <?php
 			        for ($i = 1; $i <= 6; $i++) {
 			        ?>
@@ -245,38 +256,42 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 			        }
 			        ?>
 		        </div>
-		        <div class="clearseparator"></div>		
-		        <div class="separator"></div>		
-		        <h5>ORBITAL PLOT
-		          <div style="float:right">
-		            <div class="btn-group">
+          </div>
+
+            <div class="panel panel-default">
+              <div class="panel-heading">
+		            ORBITAL PLOT
+
+		            <div class="btn-group pull-right">
 		              <button type="button" class="btn btn-default btn-xs" id="zoomIn"><span class="glyphicon glyphicon-zoom-in"></span></button>
 		              <button type="button" class="btn btn-default btn-xs" id="zoomOut"><span class="glyphicon glyphicon-zoom-out"></span></button>
-		            </div>
-		            <div class="btn-group">
 		              <button type="button" class="btn btn-info btn-xs" id="help_orbit"><span class="glyphicon glyphicon-question-sign"></span></button>
 		              
 		            </div>
 		          </div>
-		        </h5>
-		        <div id="orbit">
-		          <canvas id="orbitalplot" width="200px" height="200px">
-		            Sorry, your browser does not support the canvas element. Time to update? 
-		          </canvas>
-		        </div>
-		        <div id="zoomLegend">
-			        <div id="zoomLine"></div>
-			        <div id="zoomText">1 AU</div>			
-		        </div>			
-	        </div>
-          <div class="clearseparator"></div>
-          <div class="separator"></div>
-          <h5>SHARE</h5>
-          <input class="share" id="share" readonly>
-          <em class="hint">Copy and paste this URL to save/retrieve the current fit.</em>
-        </div>
-      </div>
-      <div class="clearseparator"></div>
-      <script type="text/javascript" src="js/ui<?= ($_GET['debug'] ? '' : '.min') ?>.js"></script>
+		          
+		          <div id="orbit" class="panel-body">
+		            <canvas id="orbitalplot" width="200px" height="200px">
+		              Sorry, your browser does not support the canvas element. Time to update? 
+		            </canvas>
+		          </div>
+		          <div id="zoomLegend">
+			          <div id="zoomLine"></div>
+			          <div id="zoomText">1 AU</div>			
+		          </div>			
+	          </div>
+
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                SHARE THIS FIT
+              </div>
+              <div class="panel-body">
+                <input class="share" id="share" readonly>
+                <em class="hint">Copy and paste this URL to save/retrieve the current fit.</em>
+              </div>
+            </div>
+          </div>
+
+          <script type="text/javascript" src="js/ui<?= ($_GET['debug'] ? '' : '.min') ?>.js"></script>
   </body>
 </html>

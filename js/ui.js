@@ -1,9 +1,23 @@
+function uialert(text) {
+    var alertDiv = $('<div class="alert alert-warning alert-dismissable">' +
+                           text + '<button type="button" class="close" data-dismiss="alert">&times;</button>');
+    
+    $(".container").prepend(alertDiv);
+
+    _.delay(function() {
+        $(alertDiv).hide(400, function() {
+            $(alertDiv).remove();
+        });
+    }, 4000);
+}
+
 $(document).ready(function(){
     // Initialize top systems combobox
     $('.combobox').select2({width:"300"});
     
     $("#systems").click(function() {
-	      K.loadSys($("#systems").val());
+        $("#rvs").click();
+	      _.defer(function() { K.loadSys($("#systems").val()); });
     });
     
     // Buttons
@@ -161,10 +175,18 @@ $(document).ready(function(){
     // Activate tabs
     $("#rvtabs a").click(function (e) {
 	      e.preventDefault();
-	      $(this).tab('show');
         var option = $(e.target).attr('href');
+        if (option == "#phased" && K.getNplanets() == 0) {
+            uialert("Add a planet first.");
+            return;
+        }
+	      $(this).tab('show');
+        
         $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
+        
 	      K.setRVPlot($(e.target).attr('href'));
+
+        
     });
     
     // Planet add/remove
@@ -175,8 +197,11 @@ $(document).ready(function(){
 	      K.removePlanet();
     });
     $("#integrated").click(function(e) {
-	      K.setIntegrated($(this).is(":checked"));
+	      $("#rv").click();
+        $("#phased").attr("enabled", !($(this).is(":checked")));
+        K.setIntegrated($(this).is(":checked"));        
     });
+
     $("#stop").click(function(e) {
        K.stop(); 
     });
@@ -278,12 +303,15 @@ $(document).ready(function(){
     // Select all when clicking on share box
     $("#share").click(function() { this.select(); });
 
-    $("#phased-planet").val('');
     $("#phased-planet").change(function() {
         var p = +$("#phased-planet").val();
+        console.log("Phased planet: " + p);
+        
         if (K.getNplanets() < p) {
-            alert("There is no planet " + p + ".");
-            $("#phased-planet").val('');
+            uialert("There is no planet " + p + " in the current fit.");
+            $("#phased-planet").val(1);
+        } else {
+            K.setPhasedPlanet(p);
         }
     });
     
@@ -291,10 +319,14 @@ $(document).ready(function(){
     
     if (_.parameter("sys")) {
         $("#systems").select2("val", _.parameter("sys"));
-        K.loadFromURL();
+        _.defer(function() { K.loadFromURL(); });
     } else {
         K.loadSys("14Her.sys");
     }
+
+    _.defer(function() {
+       uialert("Welcome to Systemic Live!"); 
+    });
 });
 
 // Activate offset sliders
