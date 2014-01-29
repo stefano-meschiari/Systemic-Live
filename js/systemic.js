@@ -363,7 +363,8 @@ K = function() {
 	  var NULL = null;
 	  var INTMETHOD = KEPLER;
     var currentSystem = "14Her.sys";
-	  
+	  var stopped = false;
+    
 	  MAX_PLANETS = 6;
 	  MAX_ELEMENTS = 5;
 	  MAX_SETS = 7;
@@ -377,7 +378,10 @@ K = function() {
 	  var init = function() {
 		    K_removePlanet(k, -1);
 		    K_removeData(k, -1);
+        K_setEpoch(k, NaN);
 		    K_setIntMethod(k, INTMETHOD);
+        K_setIntRelAcc(k, 1e-11);
+        K_setIntAbsAcc(k, 1e-11);
 	  };
 	  
 	  var refreshPSPlot = function() {
@@ -413,32 +417,46 @@ K = function() {
     };
     
 	  var refreshRVPlot = function() {
-		    var plotter = $("#rvplot").highcharts();
+        var plotter = $("#rvplot").highcharts();
 		    
 		    var nsets = K_getNsets(k);
 
-		    for (var i = 0; i < SERIES; i++) {
-			      if (i >= nsets) {
-				        plotter.series[i].hide();
-				        continue;
+        if (RVPLOT != "#phased") {
+		        for (var i = 0; i < SERIES; i++) {
+			          if (i >= nsets) {
+				            plotter.series[i].hide();
+				            continue;
+			          }
+			          else
+				            plotter.series[i].show();
+			          
+			          plotter.series[i].update({name:K_getDataName(k, i)}, false);
+			          var data = [];
+			          var size = K_getDataSize(k, i);
+			          
+			          for (var j = 0; j < size; j++) {
+				            if (RVPLOT == "#rv")
+					              data.push([K_getDataAt(k, i, j, T_TIME), K_getDataAt(k, i, j, T_SVAL)]);
+				            else if (RVPLOT == "#res")
+					              data.push([K_getDataAt(k, i, j, T_TIME), K_getDataAt(k, i, j, T_SVAL) - K_getDataAt(k, i, j, T_PRED)]);
+			          }
+			          plotter.series[i].setData(data, false);
+		        }
+		        
+		        plotter.redraw();
+        } else {
+            for (var i = 0; i < SERIES; i++) {
+			          if (i >= nsets) {
+				            plotter.series[i].hide();
+				            continue;
+			          }
+			          else
+				            plotter.series[i].show();
 			      }
-			      else
-				        plotter.series[i].show();
-			      
-			      plotter.series[i].update({name:K_getDataName(k, i)}, false);
-			      var data = [];
-			      var size = K_getDataSize(k, i);
-			      
-			      for (var j = 0; j < size; j++) {
-				        if (RVPLOT == "#rv")
-					          data.push([K_getDataAt(k, i, j, T_TIME), K_getDataAt(k, i, j, T_SVAL)]);
-				        else
-					          data.push([K_getDataAt(k, i, j, T_TIME), K_getDataAt(k, i, j, T_SVAL) - K_getDataAt(k, i, j, T_PRED)]);
-			      }
-			      plotter.series[i].setData(data, false);
-		    }
-		    
-		    plotter.redraw();
+
+            
+            
+        }
 	  };
 	  
 	  
@@ -457,7 +475,7 @@ K = function() {
 		    } 
 		    SAMP = Math.max(SAMP, 20);
 		    SAMP = Math.min(SAMP, 800);
-		    console.log(SAMP);
+
 		    if (RVPLOT == "#rv") {
 			      var rvline = [];
 			      if (K_getRVLine(k, -SAMP, 0) > 0) {
@@ -567,6 +585,9 @@ K = function() {
 			      $("#extra_" + i).html("<label>Semi-major axis [AU]:</label>&nbsp;" + prettyValue(K_getElement(k, i, SMA)) +
 				                          ", <label>Semiamp. [m/s]:</label>&nbsp;" + prettyValue(K_getElement(k, i, SEMIAMP)));
 		    }
+
+        
+        
 	  };
 	  
 	  var refreshParamPanel = function() {
@@ -589,6 +610,16 @@ K = function() {
 
     var BASEURL = location.protocol + '//' + location.host + location.pathname;
     var URLPARAMS = ['P', 'M', 'MA', 'E', 'L'];
+    var PRECISION = 7;
+    var shortenNumber = function(n) {
+        var s = n.toPrecision(PRECISION);
+        var s2 = s.replace(/0*$/, '');
+
+        if (parseFloat(s) == parseFloat(s2))
+            return s2;
+        else
+            return s;
+    };
     
 	  var refreshShare = function() {
         var url = BASEURL + "?";
@@ -599,7 +630,7 @@ K = function() {
             for (j = PER; j <= LOP; j++) {
                 var v = K_getElement(k, i, j);
                 if (v != 0.)
-                    url += "&" + URLPARAMS[j] + i + "=" + v.toPrecision(8);
+                    url += "&" + URLPARAMS[j] + i + "=" + shortenNumber(v);
             }
         for (i = 0; i < MAX_SETS; i++)
             if (K_getPar(k, i) != 0.)
@@ -611,7 +642,13 @@ K = function() {
         
         $("#share").val(url);
     };
-	  
+
+    var refreshCallbacks = [];
+
+    var addRefreshCallback = function(cb) {
+        refreshCallbacks.push(cb);
+    };
+    
 	  // Refreshes all plots
 	  var refresh = function(what) {
 		    what = typeof what !== 'undefined' ? what : ['rvplot', 'rvline', 'elements', 'params', 'stats',
@@ -632,8 +669,11 @@ K = function() {
 			      refreshPSPlot();
 		    if (what.indexOf('orbit') != -1)				
 			      refreshOrbit();
-
+        console.log('Refresh');
         refreshShare();
+
+        for (var i = 0; i < refreshCallbacks.length; i++)
+            refreshCallbacks[i]();
 	  };
 		
 	  var setRVPlot = function(type) {
@@ -641,13 +681,28 @@ K = function() {
 		    refreshRVPlot();
 		    refreshRVLine();
 	  };
-	  
-	  var setBusy = function(busy) {
-		    if (busy)
-			      $("#busy").css("display", "inline");
-		    else
-			      $("#busy").css("display", "none");		
+
+    var setReady = function() {
+        $("#busy").css("display", "none");        
+    };
+    
+	  var setBusy = function() {
+		    $("#busy").css("display", "inline");
 	  };
+
+    var exec = function(pre, fun, post, delay) {
+        delay = delay || 0;
+        _.defer(pre);
+        var f = function() {
+            var ret = fun();
+            console.log(ret);
+            if (ret)
+                _.defer(post);
+            else
+                _.delay(f, delay);
+        };
+        _.delay(f, delay);
+    };
 	  
 	  var optimize = function() {
 		    var active = false;
@@ -673,16 +728,27 @@ K = function() {
 			      alert("You need to have at least one parameter selected (use the checkboxes next to each parameter.)");
 			      return;
 		    }
-		    
-		    setBusy(true);
-		    setTimeout(function() {
-			      var done = -1;
-			      done = K_minimizeWithTimeout(k, 60);
-			      refresh();
-			      setBusy(false);
-		    }, 1);
+
+        
+        var chi2 = K_getChi2(k);
+        var delta = 1e-2;
+        exec(setBusy, function() {
+            K_minimizeWithTimeout(k, 10);
+            var chi2_2 = K_getChi2(k);
+
+            if (isNaN(chi2_2) || (chi2 - chi2_2)/chi2 < delta || stopped) {
+                return true;
+            } else {
+                chi2 = chi2_2;
+                return false;
+            }
+        }, setReady);
 	  };
-	  
+
+    var stop = function() {
+        stopped = true;
+    };
+    
 	  // Loads a new system
 	  var loadSys = function(sysname) {
 		    init();
@@ -723,6 +789,7 @@ K = function() {
 		    K_setElement(k, n, LOP, 0.);
 
 		    $("#planet_" + n).show();
+        
 		    refresh(['rvline', 'elements', 'stats', 'psplot', 'orbit']);
 	  };
 	  
@@ -742,9 +809,9 @@ K = function() {
         K.loadSys(_.parameter("sys"));
         
         var i, v;
-        var np = +(_.parameter("") || 0);
+        var np = +(_.parameter("np") || 0);
         for (i = 1; i <= np; i++) {
-            K_addPlanet(k, NULL);
+            addPlanet(100.);
             for (var j = 0; j < URLPARAMS.length; j++) {
                 v = +(_.parameter(URLPARAMS[j] + i) || 0.0);
                 K_setElement(k, i, j, v);
@@ -765,8 +832,11 @@ K = function() {
 		        INTMETHOD = RK89;
 		    else
 		        INTMETHOD = KEPLER;
-		    K_setIntMethod(INTMETHOD);
-		    refresh();
+		    K_setIntMethod(k, INTMETHOD);
+        
+//        setBusy(function() {
+		        refresh();
+//        });
 	  };
 	  
 	  var setElement = function(row, column, value, psplot) {
@@ -795,7 +865,7 @@ K = function() {
         if (!confirm("This might take a while to run\n(your browser will appear frozen for couple of minutes). Continue?"))
             return;
         $('#output_panel').show();
-        var reps = 20;
+        var reps = 50;
         var im = K_getIntMethod(k);
         
         message("Starting benchmark... [x" + reps + "]\n");
@@ -824,7 +894,9 @@ K = function() {
     };
     
     
-	  return {init:init, refresh:refresh, setBusy:setBusy, loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark, loadFromURL: loadFromURL, k:function() { return k; }};
+	  return {init:init, refresh:refresh, setBusy:setBusy, loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark, loadFromURL: loadFromURL, stop:stop,
+            addRefreshCallback:addRefreshCallback, k:function() { return k; },
+           getNplanets: function() { return K_getNplanets(k); }};
 } ();
 
 

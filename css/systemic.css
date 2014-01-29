@@ -11,12 +11,24 @@
 	margin-bottom:10px;
 }
 
-.plot {
-	border-right: 1px solid #ddd;
-	border-left: 1px solid #ddd;
-	border-bottom: 1px solid #ddd;	
-	margin-bottom:10px;
+#phased-toolbox {
+  display:none;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 3px;
+}
 
+#phased-planet {
+  width:50px;
+}
+
+.plot {
+	margin-bottom:10px;
+}
+
+.box {
+  border-right: 1px solid #ddd;
+	border-left: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
 }
 
 #orbitalplot {	
@@ -34,7 +46,8 @@ div.separator {
 }
 
 div.clearseparator {
-	height:10px
+	height:10px;
+  clear:both;
 }
 
 input.element {

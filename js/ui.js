@@ -1,5 +1,3 @@
-
-
 $(document).ready(function(){
     // Initialize top systems combobox
     $('.combobox').select2({width:"300"});
@@ -164,6 +162,8 @@ $(document).ready(function(){
     $("#rvtabs a").click(function (e) {
 	      e.preventDefault();
 	      $(this).tab('show');
+        var option = $(e.target).attr('href');
+        $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
 	      K.setRVPlot($(e.target).attr('href'));
     });
     
@@ -177,11 +177,14 @@ $(document).ready(function(){
     $("#integrated").click(function(e) {
 	      K.setIntegrated($(this).is(":checked"));
     });
+    $("#stop").click(function(e) {
+       K.stop(); 
+    });
+    
+    
     // Activate element sliders
     
     // Only redraw power spectrum every second
-    
-    
     for (var i = 1; i <= MAX_PLANETS; i++)
 	      for (var j = 0; j < MAX_ELEMENTS; j++) {
 	          var s = $("#elementSlider_" + i + "_" + j);
@@ -201,7 +204,7 @@ $(document).ready(function(){
 			                  v = Math.pow(10, v);
 		                K.setElement(i, j, v, false);
 		            });
-	          })(s, 500, i, j);
+	          })(s, 1000, i, j);
 	          
 	          
 	          var t = $("#element_" + i + "_" + j);
@@ -275,14 +278,23 @@ $(document).ready(function(){
     // Select all when clicking on share box
     $("#share").click(function() { this.select(); });
 
+    $("#phased-planet").val('');
+    $("#phased-planet").change(function() {
+        var p = +$("#phased-planet").val();
+        if (K.getNplanets() < p) {
+            alert("There is no planet " + p + ".");
+            $("#phased-planet").val('');
+        }
+    });
+    
     K.init();
     
     if (_.parameter("sys")) {
+        $("#systems").select2("val", _.parameter("sys"));
         K.loadFromURL();
     } else {
         K.loadSys("14Her.sys");
     }
-    
 });
 
 // Activate offset sliders

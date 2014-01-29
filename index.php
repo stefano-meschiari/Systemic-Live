@@ -95,7 +95,7 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 	  		<span class="glyphicon .glyphicon glyphicon-question-sign"></span>
 	  	</button>
 			&nbsp;
-			<div id="busy"><img src="img/busy.gif"> Working...</div>
+			<div id="busy"><img src="img/busy.gif"> <button class="btn btn-danger" id="stop">Stop</button></div>
 
 		</div>
     </div>
@@ -111,22 +111,36 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 		      <ul class="nav nav-tabs nav-tabs-xs" id="rvtabs">
 			      <li class="active"><a href="#rv">RADIAL VELOCITY</a></li>
 			      <li><a href="#res">RESIDUALS</a></li>
+            <li><a href="#phased">PHASED RADIAL VELOCITY</a></li>
 		      </ul>
-		      <div id="rvplot" class="plot">
-		      </div>
-		      <div class="btn-group" style="float:right">
-		        <button type="button" class="btn btn-info btn-xs" id="help_rvplot"><span class="glyphicon glyphicon-question-sign"></span></button>
-		        
-		      </div>
+          <div class="box">
+            <form id="phased-toolbox" class="navbar-form">
+              <label for="phased-planet">Planet:</label>
+               <select id="phased-planet" class="form-control">
+                 <option>1</option>
+                 <option>2</option>
+                 <option>3</option>
+                 <option>4</option>
+                 <option>5</option>
+                 <option>6</option>
+               </select>
+            </form>
+		        <div id="rvplot" class="plot">
+		        </div>
+		        <div class="btn-group" style="float:right">
+		          <button type="button" class="btn btn-info btn-xs" id="help_rvplot"><span class="glyphicon glyphicon-question-sign"></span></button>
+		        </div>
+          </div>
 		      <div class="clearseparator"></div>
 		      
 		      <ul class="nav nav-tabs nav-tabs-xs" id="pstabs">
 			      <li class="active"><a href="#">POWER SPECTRUM</a></li>
 		      </ul>
 		      
-			    
-		      <div id="psplot" class="plot">
-		      </div>	
+			    <div class="box">
+		        <div id="psplot" class="plot">
+		        </div>
+          </div>
 		      <div class="btn-group" style="float:right">
 		        <button type="button" class="btn btn-info btn-xs" id="help_psplot"><span class="glyphicon glyphicon-question-sign"></span></button>
 		        
@@ -160,7 +174,7 @@ $last_updated = date ("F d Y", filemtime('index.php'));
 				        <td id="epoch"></td>
 			        </tr>					
 		        </table>
-		        
+		        <input type="checkbox" id="integrated"> <label for="integrated">Dynamical integration</label>
 		      </div>
 		      <div class="separator"></div>
 		      <div>
@@ -259,7 +273,7 @@ $last_updated = date ("F d Y", filemtime('index.php'));
           <div class="separator"></div>
           <h5>SHARE</h5>
           <input class="share" id="share" readonly>
-          <em class="hint">Copy and paste this URL to retrieve the current fit.</em>
+          <em class="hint">Copy and paste this URL to save/retrieve the current fit.</em>
         </div>
       </div>
       <div class="clearseparator"></div>
