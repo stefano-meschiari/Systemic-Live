@@ -1,8 +1,9 @@
-function uialert(text) {
+function uialert(text, container) {
     var alertDiv = $('<div class="alert alert-warning alert-dismissable">' +
                            text + '<button type="button" class="close" data-dismiss="alert">&times;</button>');
+    container = container || ".container";
     
-    $(".container").prepend(alertDiv);
+    $(container).prepend(alertDiv);
 
     _.delay(function() {
         $(alertDiv).hide(400, function() {
@@ -16,7 +17,7 @@ $(document).ready(function(){
     $('.combobox').select2({width:"300"});
     
     $("#systems").click(function() {
-        $("#rvs").click();
+        $("#rv").click();
 	      _.defer(function() { K.loadSys($("#systems").val()); });
     });
     
@@ -95,7 +96,41 @@ $(document).ready(function(){
 		            type:"line",
 		            name:"RV signal",
 		            marker:{enabled:false}
-		            
+	          },
+            {
+		            color:COLORS[0],
+		            name:"Planet 1",
+                type:"line",
+		            visible:false,
+                marker:{enabled:false}
+	          },
+            {
+		            color:COLORS[1],
+		            name:"Planet 2",
+                type:"line",
+		            visible:false,
+                marker:{enabled:false}
+	          },
+            {
+		            color:COLORS[2],
+		            name:"Planet 3",
+                type:"line",
+		            visible:false,
+                marker:{enabled:false}
+	          },
+            {
+		            color:COLORS[3],
+		            name:"Planet 4",
+                type:"line",
+		            visible:false,
+                marker:{enabled:false}
+	          },
+            {
+		            color:COLORS[4],
+		            name:"Planet 5",
+                type:"line",
+		            visible:false,
+                marker:{enabled:false}
 	          }
 	      ]
     });
@@ -177,6 +212,20 @@ $(document).ready(function(){
 	      e.preventDefault();
         var option = $(e.target).attr('href');
         if (option == "#phased" && K.getNplanets() == 0) {
+            uialert("Add a planet first.", "#top-plot");
+            return;
+        }
+	      $(this).tab('show');
+        
+        $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
+        
+	      K.setRVPlot($(e.target).attr('href'));
+    });
+
+    $("#pstabs a").click(function (e) {
+	      e.preventDefault();
+        var option = $(e.target).attr('href');
+        if (option == "#dynamical" && K.getNplanets() == 0) {
             uialert("Add a planet first.");
             return;
         }
@@ -185,10 +234,8 @@ $(document).ready(function(){
         $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
         
 	      K.setRVPlot($(e.target).attr('href'));
-
-        
     });
-    
+
     // Planet add/remove
     $("#addPlanet").click(function(e) {
 	      K.addPlanet();

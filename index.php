@@ -1,10 +1,15 @@
 <?php
 $elements = array("<strong>Period</strong> [days]", "<strong>Mass</strong> [Mj]", "<strong>Mean Anomaly</strong> [deg]", "<strong>Eccentricity</strong>",
                   "<strong>Long. of peri.</strong> [deg]");
-
+$ver = '0.2';
 $MAX_SETS = 7;
 $MAX_PLANETS = 6;
 $last_updated = date ("F d Y", filemtime('index.php'));
+
+if (!isset($_COOKIE['systemiclive-' . $ver])) {
+  header('systemic-intro.php');
+};
+
 ?>
 <!doctype html>
 <!-- manifest="cache.manifest.php"  -->
@@ -20,7 +25,7 @@ $last_updated = date ("F d Y", filemtime('index.php'));
   </head>
 
   <body>
-    <script src="https://code.jquery.com/jquery.min.js"></script>
+    <script src="js/jquery.1.9.1.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="js/jcanvas.min.js" defer></script>
     <script src="js/underscore-min.js"></script>
@@ -45,15 +50,15 @@ $last_updated = date ("F d Y", filemtime('index.php'));
     <?php
     if ($_GET['debug']) {
     ?>
-    <script type="text/javascript" src="js/libsystemic.js?v=0.2"></script>
-    <script type="text/javascript" src="js/systemic.js?v=0.2"></script>
-    <script type="text/javascript" src="js/help.js?v=0.2"></script>
+    <script type="text/javascript" src="js/libsystemic.js?v=<?= $ver ?>>"></script>
+    <script type="text/javascript" src="js/systemic.js?v=<?= $ver ?>"></script>
+    <script type="text/javascript" src="js/help.js?v=<?= $ver ?>"></script>
     <?php
     } else {
     ?>
-    <script type="text/javascript" src="js/libsystemic.min.js?v=0.2"></script>
-    <script type="text/javascript" src="js/systemic.min.js?v=0.2"></script>
-    <script type="text/javascript" src="js/help.min.js?v=0.2"></script>
+    <script type="text/javascript" src="js/libsystemic.min.js?v=<?= $ver ?>"></script>
+    <script type="text/javascript" src="js/systemic.min.js?v=<?= $ver ?>"></script>
+    <script type="text/javascript" src="js/help.min.js?v=<?= $ver ?>"></script>
     <?php
     }
     ?>
@@ -113,14 +118,17 @@ $last_updated = date ("F d Y", filemtime('index.php'));
       </div>
       <div class="row">
 	      <div class="col-md-7">
-		      <ul class="nav nav-tabs nav-tabs-xs" id="rvtabs">
-			      <li class="active"><a href="#rv">RADIAL VELOCITY</a></li>
+		      <ul class="nav nav-pills nav-pills-xs" id="rvtabs">
+			      <li class="active"><a href="#rv" id="rv">RADIAL VELOCITY</a></li>
 			      <li><a href="#res">RESIDUALS</a></li>
             <li><a href="#phased">PHASED RADIAL VELOCITY</a></li>
+            <li><a href="#dynamical">DYNAMICS</a></li>
+
 		      </ul>
-          <div class="box">
-            <form id="phased-toolbox" class="navbar-form">
-              <label for="phased-planet">Planet:</label>
+          <div class="box" id="top-plot">
+            <form id="phased-toolbox" class="navbar-form navbar-left">
+              <div class="navbar-group">
+              <label for="phased-planet">Radial velocity curve for planet:</label>
               <select id="phased-planet" class="form-control">
                 <option>1</option>
                 <option>2</option>
@@ -129,7 +137,25 @@ $last_updated = date ("F d Y", filemtime('index.php'));
                 <option>5</option>
                 <option>6</option>
               </select>
+              </div>
             </form>
+
+            <form id="dynamical-toolbox" class="navbar-form navbar-left">
+               <div class="navbar-group">
+                 Integrate for:
+                 <input type="text" id="dynamical-years" placeholder="years" value="1000"> years into the future.
+                 <button type="button" class="btn btn-default navbar-btn pull-right" id="dynamical-integrate">Integrate</button>
+                 
+               </div>
+               <div class="navbar-group">
+                 Show:
+                 <select id="dynamical-plot">
+                   <option>Semi-major axes</option>
+                   <option>Eccentricities</option>
+                 </select>
+               </div>
+            </form>
+
 		        <div id="rvplot" class="plot">
 		        </div>
 		        <div class="btn-group" style="float:right">
@@ -138,11 +164,12 @@ $last_updated = date ("F d Y", filemtime('index.php'));
           </div>
 		      <div class="clearseparator"></div>
 		      
-		      <ul class="nav nav-tabs nav-tabs-xs" id="pstabs">
-			      <li class="active"><a href="#">POWER SPECTRUM</a></li>
+		      <ul class="nav nav-pills nav-pills-xs" id="pstabs">
+			      <li class="active"><a href="#ps">POWER SPECTRUM</a></li>
 		      </ul>
 		      
-			    <div class="box">
+			    <div class="box" id="bottom-plot">
+            
 		        <div id="psplot" class="plot">
 		        </div>
           </div>

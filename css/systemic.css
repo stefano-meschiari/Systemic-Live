@@ -13,12 +13,20 @@
 
 #phased-toolbox {
   display:none;
-  border-bottom: 1px solid #ddd;
   padding-bottom: 3px;
+  border-bottom:1px solid #ddd;
+  width:100%;
 }
 
 #phased-planet {
   width:50px;
+}
+
+#dynamical-toolbox {
+  padding-bottom: 3px;
+  border-bottom:1px solid #ddd;
+  width:100%;
+  display:none;
 }
 
 .plot {
@@ -26,9 +34,16 @@
 }
 
 .box {
-  border-right: 1px solid #ddd;
-	border-left: 1px solid #ddd;
-	border-bottom: 1px solid #ddd;
+  border: 1px solid #ddd;
+	margin-top:5px;
+  padding:4px;
+}
+
+.box .alert {
+  margin-left:30px;
+  margin-right:30px;
+  margin-top:10px;
+  margin-bottom:10px;
 }
 
 #orbitalplot {	

@@ -361,7 +361,9 @@ K = function() {
 	  var RVLINE = 6;
 	  var SAMPLES = 500;
 	  var RVPLOT = "#rv";
-	  var PSPLOT = "#rv";
+	  var PSPLOT = "#ps";
+    var DYN_SHOW = 0;
+    
 	  PSDATA = null;
 	  var NULL = null;
 	  var INTMETHOD = KEPLER;
@@ -393,6 +395,14 @@ K = function() {
             return;
         
 		    var plotter = $("#psplot").highcharts();
+
+        if (PSPLOT != "#ps") {
+            plotter.series[0].hide();
+            return;
+        } else {
+            plotter.series[0].show();
+        }
+
 		    var samples = K_getPeriodogramAt(k, -1, 0);
 
 		    var data = [];
@@ -431,7 +441,9 @@ K = function() {
     var PHASED_PLANET = 1;
     var RV_DEFAULT_XAXIS = "Julian Days [d]";
     var RV_PHASED_XAXIS = "Phase [d] - Phased to planet ";
-    
+    var RV_YAXIS = "Radial velocity [m/s]";
+    var DYN_XAXIS = "Time [years]";
+
     var setPhasedPlanet = function(n) {
         PHASED_PLANET = n;
         console.log(PHASED_PLANET);        
@@ -446,7 +458,8 @@ K = function() {
 		    
 		    var nsets = K_getNsets(k);
 
-        if (RVPLOT != "#phased") {
+        if (RVPLOT == "#rv" || RVPLOT == "#res") {
+            plotter.yAxis[0].update({title:{text: RV_YAXIS}}, false);
             plotter.xAxis[0].update({title:{text: RV_DEFAULT_XAXIS}}, false);
 		        for (var i = 0; i < SERIES; i++) {
 			          if (i >= nsets) {
@@ -471,12 +484,14 @@ K = function() {
 		        }
 		        
 		        plotter.redraw();
-        } else {
+        } else if (RVPLOT == "#phased") {
+            
             if (PHASED_PLANET < 1 || PHASED_PLANET > K_getNplanets(k)) {
                 uialert("Selected planet in phased radial velocity plot is " + PHASED_PLANET + ", but there are not enough planets in the fit.");
 
                 return;
             } else {
+                plotter.yAxis[0].update({title:{text: RV_YAXIS}}, false);
                 plotter.xAxis[0].update({title:{text: RV_PHASED_XAXIS + PHASED_PLANET}}, false);
             }
             
@@ -501,7 +516,13 @@ K = function() {
                 plotter.series[i].setData(dataSets[i], false);
             
             plotter.redraw();
-        }
+        } else if (RVPLOT == "#dynamical") {
+            for (i = 0; i < SERIES; i++)
+                plotter.series[i].hide();
+                
+            plotter.xAxis[0].update({title:{text: DYN_XAXIS}}, false);
+            
+        };
 	  };
 	  
 	  var refreshRVLine = function(redraw) {
@@ -533,8 +554,8 @@ K = function() {
 			      }
 			      plotter.series[RVLINE].show();
 			      plotter.series[RVLINE].setData(rvline, true);
-		    } else if (RVPLOT == "#res") {
-			      plotter.series[RVLINE].hide();			
+		    } else if ((RVPLOT == "#res") || (RVPLOT == "#dynamical")) {
+			      plotter.series[RVLINE].hide();	
 		    } else if (RVPLOT == "#phased") {
             if (PHASED_PLANET < 1 || PHASED_PLANET > K_getNplanets(k)) {
                 uialert("Selected planet in phased radial velocity plot is " + PHASED_PLANET + ", but there are not enough planets in the fit.");
@@ -744,7 +765,7 @@ K = function() {
 		    refreshRVLine();
 	  };
 
-
+    
 
 
     var exec = function(pre, fun, post, delay) {
