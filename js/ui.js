@@ -223,6 +223,7 @@ $(document).ready(function(){
 	      $(this).tab('show');
         
         $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
+        $("#dynamical-toolbox").css("display", (option == "#dynamical" ? "block" : "none"));
         
 	      K.setRVPlot($(e.target).attr('href'));
     });

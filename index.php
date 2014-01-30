@@ -144,7 +144,7 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
 
             <form id="dynamical-toolbox" class="navbar-form navbar-left">
                <div class="navbar-group">
-                 Integrate for:
+                 Evolve for:
                  <input type="text" id="dynamical-years" placeholder="years" value="1000"> years into the future.
                  <button type="button" class="btn btn-default navbar-btn pull-right" id="dynamical-integrate">Integrate</button>
                  
