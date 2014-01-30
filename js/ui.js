@@ -1,6 +1,6 @@
 function uialert(text, container, delay) {
     var alertDiv = $('<div class="alert alert-warning alert-dismissable">' +
-                           _.escape(text) + '<button type="button" class="close" data-dismiss="alert">&times;</button>');
+                           text + '<button type="button" class="close" data-dismiss="alert">&times;</button>');
     container = container || ".container";
     delay = delay || 400;
     $(container).prepend(alertDiv);
@@ -37,7 +37,8 @@ $(document).ready(function(){
 	          enabled:false
 	      },
 	      legend: {
-	          enabled:false
+	          //enabled:false
+            useHTML:true
 	      },
 	      title: {
 	          enabled:false,
@@ -60,77 +61,86 @@ $(document).ready(function(){
 		            color:COLORS[0],
 		            name:"",
 		            marker:{symbol:"circle"},
-		            visible:false
+		            visible:false, 
+                showInLegend:false
 	          },
 	          {
 		            color:COLORS[1],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false			  
+		            visible:false, showInLegend:false			  
 	          },
 	          {
 		            color:COLORS[2],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false			  
+		            visible:false, showInLegend:false			  
 	          },
 	          {
 		            color:COLORS[3],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false			  
+		            visible:false, showInLegend:false			  
 	          },
 	          {
 		            color:COLORS[4],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false			  
+		            visible:false, showInLegend:false			  
 	          },
 	          {
 		            color:COLORS[5],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false			  
+		            visible:false, showInLegend:false		  
 	          },
 	          {
 		            color:"black",
 		            type:"line",
 		            name:"RV signal",
+                showInLegend:false,
 		            marker:{enabled:false}
 	          },
             {
 		            color:COLORS[0],
 		            name:"Planet 1",
                 type:"line",
-		            visible:false,
+		            visible:false, showInLegend:false,
                 marker:{enabled:false}
 	          },
             {
 		            color:COLORS[1],
 		            name:"Planet 2",
                 type:"line",
-		            visible:false,
+		            visible:false, showInLegend:false,
                 marker:{enabled:false}
 	          },
             {
 		            color:COLORS[2],
 		            name:"Planet 3",
                 type:"line",
-		            visible:false,
+		            visible:false, showInLegend:false,
                 marker:{enabled:false}
 	          },
             {
 		            color:COLORS[3],
 		            name:"Planet 4",
                 type:"line",
-		            visible:false,
+		            visible:false, showInLegend:false,
                 marker:{enabled:false}
 	          },
             {
 		            color:COLORS[4],
 		            name:"Planet 5",
                 type:"line",
-		            visible:false,
+		            visible:false, showInLegend:false,
+                marker:{enabled:false}
+	          },
+            {
+		            color:COLORS[5],
+		            name:"Planet 6",
+                type:"line",
+		            visible:false, showInLegend:false,
                 marker:{enabled:false}
 	          }
 	      ]
@@ -215,8 +225,8 @@ $(document).ready(function(){
         if (option == "#phased" && K.getNplanets() == 0) {
             uialert("Add a planet first.", "#top-plot");
             return;
-        } else if (option == "#dynamical" && K.getNplanets() == 0) {
-            uialert("Add a planet first.", "#top-plot");
+        } else if (option == "#dynamical" && K.getNplanets() < 2) {
+            uialert("You need to have at least two planets in the fit to see some dynamical interaction.", "#top-plot");
             return;
         }
 
@@ -224,7 +234,6 @@ $(document).ready(function(){
         
         $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
         $("#dynamical-toolbox").css("display", (option == "#dynamical" ? "block" : "none"));
-        
 	      K.setRVPlot($(e.target).attr('href'));
     });
 
@@ -354,6 +363,20 @@ $(document).ready(function(){
             K.setPhasedPlanet(p);
         }
     });
+
+
+    // Dynamical integration
+    $("#dynamical-integrate").click(function() {
+        if (K.getNplanets() < 2) {
+            uialert("There will be no dynamical interaction with fewer than two planets!", "#top-plot");
+            return;
+        }
+        var nyears = parseFloat($("#dynamical-years").val());
+        K.integrateForward(nyears);
+    });
+    $("#dynamical-plot").change(function() {
+        K.setIntegratePlot($(this).prop('selectedIndex'));
+    });
     
     K.init();
     
@@ -362,6 +385,7 @@ $(document).ready(function(){
         _.defer(function() { K.loadFromURL(); });
     } else {
         K.loadSys("14Her.sys");
+        K.resetSeries();
     }
 
     _.defer(function() {

@@ -4,7 +4,7 @@ $elements = array("<strong>Period</strong> [days]", "<strong>Mass</strong> [Mj]"
 $ver = '0.2';
 $MAX_SETS = 7;
 $MAX_PLANETS = 6;
-$last_updated = date ("F d Y", filemtime('index.php'));
+$last_updated = date ("F d, Y", filemtime('index.php'));
 
 $needs_benchmark = false;
 if (!isset($_COOKIE['systemiclive-' . $ver])) {
@@ -91,8 +91,6 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
           <li><a href="https://github.com/stefano-meschiari/Systemic-Live">Fork me on Github!</a></li>
           <li><a href="#">Last updated: <strong><?= $last_updated ?></strong></a></li>
           <li class="divider"></li>
-          <li><a href="#" onClick="K.benchmark();">Benchmark</a><li>
-			      <li class="divider"></li>
 			      <li><a href="http://stefanom.org/?systemic" target="_new">Full version of Systemic</a></li>
 			      <li><a href="http://goo.gl/ZDcj9F" target="_new">Papers about Systemic</a></li>
 			  </ul>			  

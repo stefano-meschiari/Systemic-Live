@@ -6,7 +6,7 @@ _.clone = function(obj) {
 };
 
 _.parameter = function(name) {
-  return(decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null);
+    return(decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null);
 };
 
 K = function() {
@@ -139,6 +139,11 @@ K = function() {
 	var DATA = 2;
 	var ALL = -1;
 	var LENGTH = -2;
+	var JS_I_START = 0;
+	var JS_I_STEP = 1;
+	var JS_I_GET = 2;
+	var JS_I_END = 3;
+	var JS_I_ENDREACHED = -1;
 	var M_PI = 3.14159265e+00;
 	var PS_TIME = 0;
 	var PS_Z = 1;
@@ -180,6 +185,7 @@ K = function() {
 	var K_minimizeWithTimeout = Module.cwrap('K_minimizeWithTimeout', 'number', ['number', 'number']);	// int K_minimizeWithTimeout(ok_kernel* k, int timeout)
 	var K_getPhasedRVLine = Module.cwrap('K_getPhasedRVLine', 'number', ['number', 'number', 'number', 'number']);	// double K_getPhasedRVLine(ok_kernel* k, int planet, int row, int column)
 	var K_getPhasedDataForPlanet = Module.cwrap('K_getPhasedDataForPlanet', 'number', ['number', 'number', 'number', 'number']);	// double K_getPhasedDataForPlanet(ok_kernel* k, int planet, int row, int column)
+	var K_integrateForward = Module.cwrap('K_integrateForward', 'number', ['number', 'number', 'number', 'number', 'number']);	// double K_integrateForward(ok_kernel* k, const int mode, const double nyears,         const int row, const int col)
 	var DEGRANGE = Module.cwrap('DEGRANGE', 'number', ['number']);	// double DEGRANGE(double angle)
 	var RADRANGE = Module.cwrap('RADRANGE', 'number', ['number']);	// double RADRANGE(double angle)
 	var ok_sort_small_matrix = Module.cwrap('ok_sort_small_matrix', 'number', ['number', 'number']);	// void ok_sort_small_matrix(gsl_matrix* matrix, const int column)
@@ -362,7 +368,6 @@ K = function() {
 	  var SAMPLES = 500;
 	  var RVPLOT = "#rv";
 	  var PSPLOT = "#ps";
-    var DYN_SHOW = 0;
     
 	  PSDATA = null;
 	  var NULL = null;
@@ -381,6 +386,7 @@ K = function() {
 	  
 	  // Initializes a new kernel object.
 	  var init = function() {
+        integrateData = null;        
 		    K_removePlanet(k, -1);
 		    K_removeData(k, -1);
         K_setEpoch(k, NaN);
@@ -390,7 +396,7 @@ K = function() {
 	  };
 	  
 	  var refreshPSPlot = function() {
-//        return;
+        //        return;
         if (K_getNdata(k) == 0)
             return;
         
@@ -437,16 +443,107 @@ K = function() {
         
     };
 
+    var integrateData = null;
+    var INTEGRATESERIES_OFFSET = RVLINE + 1;
+    var INTEGRATE_PLOT = 0;
+    var INTEGRATE_XAXIS = "Time [years]";
+    var INTEGRATE_YAXIS_A = "Semi-major axis [AU]";
+    var INTEGRATE_YAXIS_ECC = "Eccentricity";
+    
+    var setIntegratePlot = function(what) {
+        INTEGRATE_PLOT = what;
+        refreshIntegratePlot();
+    };
+    
+    var refreshIntegratePlot = function() {
+        var i;
+        var plotter = $("#rvplot").highcharts();
+
+        if (integrateData == null) {
+            for (i = INTEGRATESERIES_OFFSET; i < INTEGRATESERIES_OFFSET + MAX_PLANETS; i++) {
+                plotter.series[i].hide();
+                plotter.series[i].update({showInLegend:false});
+                
+                plotter.series[i].setData(null);
+            }
+        } else {
+            var data;
+            if (INTEGRATE_PLOT == 0) {
+                data = integrateData.a;
+                plotter.yAxis[0].update({title:{text:INTEGRATE_YAXIS_A}});
+            } else {
+                data = integrateData.ecc;
+                plotter.yAxis[0].update({title:{text:INTEGRATE_YAXIS_ECC}});
+            }
+            
+            for (i = 1; i <= K_getNplanets(k); i++) {
+                plotter.series[i+INTEGRATESERIES_OFFSET-1].show();
+                plotter.series[i+INTEGRATESERIES_OFFSET-1].update({showInLegend:true});
+                plotter.series[i+INTEGRATESERIES_OFFSET-1].setData(data[i], true);
+            }
+        };
+        
+        plotter.redraw();
+    };
+    
+    var integrateForward = function(nyears) {
+        integrateData = {};
+        integrateData.a = [];
+        integrateData.ecc = [];
+        integrateData.years = [];
+        console.log(nyears);
+        var i;
+        for (i = 1; i <= K_getNplanets(k); i++) {
+            integrateData.a[i] = [];
+            integrateData.ecc[i] = [];
+        }
+
+        var ret = K_integrateForward(k, JS_I_START, nyears, -1, -1);
+        exec(null, function() {
+            return stepIntegration(nyears);
+        }, function() {
+            K_integrateForward(k, JS_I_END, nyears, -1, -1);
+            refreshIntegratePlot();
+        }, 200);
+    };
+
+    var stepIntegration = function(nyears) {
+        var time = K_integrateForward(k, JS_I_STEP, nyears, -1, -1);
+        console.log(time);
+        
+        if (time == JS_I_ENDREACHED || stopped)
+            return true;
+        if (time < 0) {
+            var t = (integrateData.years.length > 0 ? integrateData.years[integrateData.years.length-1] : 0);
+            alert("Probable close encounter at t = " + t + " years");
+            return true;
+        }
+        var i;
+
+        for (i = 1; i <= K_getNplanets(k); i++) {
+            integrateData.a[i].push([time, K_integrateForward(k, JS_I_GET, nyears, i, SMA)]);
+            integrateData.ecc[i].push([time, K_integrateForward(k, JS_I_GET, nyears,i, ECC)]);
+        }
+        integrateData.years.push(time);
+        refreshIntegratePlot();
+        return false;
+    };
     
     var PHASED_PLANET = 1;
     var RV_DEFAULT_XAXIS = "Julian Days [d]";
     var RV_PHASED_XAXIS = "Phase [d] - Phased to planet ";
     var RV_YAXIS = "Radial velocity [m/s]";
-    var DYN_XAXIS = "Time [years]";
 
+    var resetSeries = function() {
+        var plotter = $("#rvplot").highcharts();
+		            
+        for (var i = 0; i < plotter.series.length; i++)
+            plotter.series[i].setData(null);
+    };
+    
     var setPhasedPlanet = function(n) {
         PHASED_PLANET = n;
-        console.log(PHASED_PLANET);        
+        resetSeries();
         refresh();
     };
     
@@ -460,16 +557,19 @@ K = function() {
 
         if (RVPLOT == "#rv" || RVPLOT == "#res") {
             plotter.yAxis[0].update({title:{text: RV_YAXIS}}, false);
-            plotter.xAxis[0].update({title:{text: RV_DEFAULT_XAXIS}}, false);
+            plotter.xAxis[0].update({title:{text: RV_DEFAULT_XAXIS}, min:null, max:null}, false);
 		        for (var i = 0; i < SERIES; i++) {
 			          if (i >= nsets) {
 				            plotter.series[i].hide();
                     plotter.series[i].setData(null);
+                    plotter.series[i].update({showInLegend:false});
+                    
 				            continue;
 			          }
-			          else
+			          else {
 				            plotter.series[i].show();
-			          
+			              plotter.series[i].update({showInLegend:true});
+                }
 			          plotter.series[i].update({name:K_getDataName(k, i)}, false);
 			          var data = [];
 			          var size = K_getDataSize(k, i);
@@ -499,10 +599,14 @@ K = function() {
             for (i = 0; i < SERIES; i++) {
 			          if (i >= nsets) {
 				            plotter.series[i].hide();
+                    plotter.series[i].update({showInLegend:false});
+
 				            continue;
 			          }
-			          else
+			          else {
 				            plotter.series[i].show();
+                    plotter.series[i].update({showInLegend:true});
+                }
                 dataSets[i] = [];
                 plotter.series[i].update({name:K_getDataName(k, i)}, false);
 			      }
@@ -510,17 +614,19 @@ K = function() {
             for (i = 0; i < K_getNdata(k); i++) {
                 var d = parseInt(K_getPhasedDataForPlanet(k, -1, i, T_SET));
                 dataSets[d].push([K_getPhasedDataForPlanet(k, -1, i, T_TIME),
-                                 K_getPhasedDataForPlanet(k, -1, i, T_VAL)]);
+                                  K_getPhasedDataForPlanet(k, -1, i, T_VAL)]);
             }
             for (i = 0; i < nsets; i++)
                 plotter.series[i].setData(dataSets[i], false);
             
             plotter.redraw();
         } else if (RVPLOT == "#dynamical") {
-            for (i = 0; i < SERIES; i++)
+            for (i = 0; i < SERIES; i++) {
                 plotter.series[i].hide();
-                
-            plotter.xAxis[0].update({title:{text: DYN_XAXIS}}, false);
+                plotter.series[i].update({showInLegend:false});
+            }
+            plotter.series[RVLINE].update({showInLegend:false});
+            plotter.xAxis[0].update({title:{text: INTEGRATE_XAXIS}}, false);
             
         };
 	  };
@@ -553,9 +659,11 @@ K = function() {
 					          rvline.push([K_getRVLine(k, i, 0), K_getRVLine(k, i, 1)]);
 			      }
 			      plotter.series[RVLINE].show();
+            plotter.series[RVLINE].update({showInLegend:true});
 			      plotter.series[RVLINE].setData(rvline, true);
 		    } else if ((RVPLOT == "#res") || (RVPLOT == "#dynamical")) {
-			      plotter.series[RVLINE].hide();	
+			      plotter.series[RVLINE].hide();
+            plotter.series[i].update({showInLegend:false});
 		    } else if (RVPLOT == "#phased") {
             if (PHASED_PLANET < 1 || PHASED_PLANET > K_getNplanets(k)) {
                 uialert("Selected planet in phased radial velocity plot is " + PHASED_PLANET + ", but there are not enough planets in the fit.");
@@ -567,8 +675,10 @@ K = function() {
                     rvline.push([K_getPhasedRVLine(k, -1, i, 0), K_getPhasedRVLine(k, -1, i, 1)]);
             }
             
-			      plotter.series[RVLINE].show();
 			      plotter.series[RVLINE].setData(rvline, true);            
+			      plotter.series[RVLINE].show();
+            plotter.series[i].update({showInLegend:true});
+            
         }
 	  };
 	  
@@ -737,8 +847,9 @@ K = function() {
 	  var refresh = function(what) {
 		    what = typeof what !== 'undefined' ? what : ['rvplot', 'rvline', 'elements', 'params', 'stats',
 			                                               'psplot', 'orbit'];
-		    
-		    K_calculate(k);
+
+        if (what.indexOf('rvplot') != -1 || (RVPLOT != "#rv" && what.indexOf('rvline') != -1) || what.indexOf('elements') != -1 || what.indexOf('params') != -1 || what.indexOf('psplot') != -1)
+		        K_calculate(k);
 		    if (what.indexOf('rvplot') != -1 || (RVPLOT != "#rv" && what.indexOf('rvline') != -1))
 			      refreshRVPlot();
 		    if (what.indexOf('rvline') != -1)
@@ -753,7 +864,7 @@ K = function() {
 			      refreshPSPlot();
 		    if (what.indexOf('orbit') != -1)				
 			      refreshOrbit();
-        console.log('Refresh');
+
         refreshShare();
 
         for (var i = 0; i < refreshCallbacks.length; i++)
@@ -762,23 +873,37 @@ K = function() {
 		
 	  var setRVPlot = function(type) {
 		    RVPLOT = type;
+        resetSeries();
 		    refresh();
 	  };
 
+    var disable = function(cb) {
+        $("#busy").show(400, function() {
+            if (cb)
+                cb();
+        });
+        
+    };
+
+    var enable = function() {
+        $("#busy").hide(400);
+    };
+    
     var exec = function(pre, fun, post, delay) {
+        stopped = false;
         delay = delay || 0;
         if (pre) _.defer(pre);
         var f = function() {
             var ret = fun();
             if (ret)
                 _.defer(function() {
-                    $("#busy").hide(400);
+                    enable();
                     if (post) post();
                 });
             else
                 _.delay(f, delay);
         };
-        $("#busy").show(400, function() {
+        disable(function() {
             _.delay(f, delay);            
         });
     };
@@ -825,7 +950,7 @@ K = function() {
                 chi2 = chi2_2;
                 return false;
             };
-        }, null);
+        }, null, 200);
 	  };
 
     var stop = function() {
@@ -834,6 +959,7 @@ K = function() {
     
 	  // Loads a new system
 	  var loadSys = function(sysname) {
+        
 		    init();
 		    K_addDataFromSystem(k, "datafiles/" + sysname);
 		    if (K_getNsets(k) > MAX_SETS) {
@@ -855,6 +981,8 @@ K = function() {
 	  };
 	  
 	  var addPlanet = function(period) {
+        integrateData = null;
+
 		    period = typeof period !== 'undefined' ? period : 100;
 		    var n = K_getNplanets(k);
 			  
@@ -877,6 +1005,7 @@ K = function() {
 	  };
 	  
 	  var removePlanet = function() {
+        integrateData = null;
 		    var n = K_getNplanets(k);		
 		    if (n == 0) {
 			      alert("No more planets to remove.");
@@ -902,8 +1031,8 @@ K = function() {
         }
 
         for (i = 0; i < MAX_SETS; i++) {
-             v = +(_.parameter('o' + i) || 0.0);
-             K_setPar(k, i, v);
+            v = +(_.parameter('o' + i) || 0.0);
+            K_setPar(k, i, v);
         }
 
         K_setIntMethod(k, +(_.parameter('im') || KEPLER));
@@ -918,9 +1047,9 @@ K = function() {
 		    K_setIntMethod(k, INTMETHOD);
 
         
-//        setBusy(function() {
-		        refresh();
-//        });
+        //        setBusy(function() {
+		    refresh();
+        //        });
 	  };
 
     var isIntegrated = function() {
@@ -961,8 +1090,8 @@ K = function() {
     
     
 	  return {init:init, refresh:refresh,  loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, isIntegrated:isIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark, loadFromURL: loadFromURL, stop:stop,
-            addRefreshCallback:addRefreshCallback, setPhasedPlanet: setPhasedPlanet, k:function() { return k; },
-           getNplanets: function() { return K_getNplanets(k); }};
+            addRefreshCallback:addRefreshCallback, setPhasedPlanet: setPhasedPlanet, integrateForward:integrateForward, setIntegratePlot:setIntegratePlot, resetSeries:resetSeries, k:function() { return k; },
+            getNplanets: function() { return K_getNplanets(k); }};
 } ();
 
 
