@@ -6,8 +6,10 @@ $MAX_SETS = 7;
 $MAX_PLANETS = 6;
 $last_updated = date ("F d Y", filemtime('index.php'));
 
+$needs_benchmark = false;
 if (!isset($_COOKIE['systemiclive-' . $ver])) {
-  header('systemic-intro.php');
+  setcookie("systemiclive-" . $ver, 'checked', time() + 60*60*24 * 365.25);
+  $needs_benchmark = true;
 };
 
 ?>
@@ -318,6 +320,12 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
               </div>
             </div>
           </div>
+
+          <?php
+          if ($needs_benchmark)
+            echo '<script type="text/javascript" src="js/benchmark.js"></script>';
+          
+          ?>
 
           <script type="text/javascript" src="js/ui<?= ($_GET['debug'] ? '' : '.min') ?>.js"></script>
   </body>

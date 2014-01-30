@@ -738,7 +738,7 @@ K = function() {
 			                                               'psplot', 'orbit'];
 		    
 		    K_calculate(k);
-		    if (what.indexOf('rvplot') != -1 || (RVPLOT != "#rv"))
+		    if (what.indexOf('rvplot') != -1 || (RVPLOT != "#rv" && what.indexOf('rvline') != -1))
 			      refreshRVPlot();
 		    if (what.indexOf('rvline') != -1)
 			      refreshRVLine();
@@ -953,35 +953,13 @@ K = function() {
     };
     
 	  var benchmark = function() {
-        if (!confirm("This might take a while to run\n(your browser will appear frozen for couple of minutes). Continue?"))
-            return;
-        $('#output_panel').show();
-        var reps = 50;
-        var im = K_getIntMethod(k);
+        var reps = 5;
         
-        message("Starting benchmark... [x" + reps + "]\n");
-        message("Refreshing Keplerian: " +
-                timeFunction(function() {
-                    for (var i = 0; i < reps; i++)
-                        K_calculate(k);
-                        //refresh('rvline');
-                })/reps + "ms\n");
-        message("Refreshing RK89: " +
-                timeFunction(function() {
-                    K_setIntMethod(k, RK89);
-                    for (var i = 0; i < reps; i++)
-                        K_calculate(k);
-                        //refresh('rvline');
-                })/reps + "ms\n");
-        message("Refreshing Power Spectrum: " +
-                timeFunction(function() {
-                    for (var i = 0; i < reps; i++)
-                        //refresh('psplot');
-                        K_getPeriodogramAt(k, -1, 0);
-                })/reps + "ms\n");
-
-        K_setIntMethod(k, im);
-        
+        return(timeFunction(function() {
+            for (var i = 0; i < reps; i++) {
+                K_getPeriodogramAt(k, -1, 0);
+            }
+        }));
     };
     
     

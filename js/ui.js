@@ -1,15 +1,16 @@
-function uialert(text, container) {
+function uialert(text, container, delay) {
     var alertDiv = $('<div class="alert alert-warning alert-dismissable">' +
-                           text + '<button type="button" class="close" data-dismiss="alert">&times;</button>');
+                           _.escape(text) + '<button type="button" class="close" data-dismiss="alert">&times;</button>');
     container = container || ".container";
-    
+    delay = delay || 400;
     $(container).prepend(alertDiv);
 
     _.delay(function() {
-        $(alertDiv).hide(400, function() {
-            $(alertDiv).remove();
-        });
-    }, 4000);
+        if (delay > 0)
+            $(alertDiv).hide(400, function() {
+                $(alertDiv).remove();
+            });
+    }, 3000);
 }
 
 $(document).ready(function(){
@@ -214,7 +215,11 @@ $(document).ready(function(){
         if (option == "#phased" && K.getNplanets() == 0) {
             uialert("Add a planet first.", "#top-plot");
             return;
+        } else if (option == "#dynamical" && K.getNplanets() == 0) {
+            uialert("Add a planet first.", "#top-plot");
+            return;
         }
+
 	      $(this).tab('show');
         
         $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
@@ -222,19 +227,6 @@ $(document).ready(function(){
 	      K.setRVPlot($(e.target).attr('href'));
     });
 
-    $("#pstabs a").click(function (e) {
-	      e.preventDefault();
-        var option = $(e.target).attr('href');
-        if (option == "#dynamical" && K.getNplanets() == 0) {
-            uialert("Add a planet first.");
-            return;
-        }
-	      $(this).tab('show');
-        
-        $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
-        
-	      K.setRVPlot($(e.target).attr('href'));
-    });
 
     // Planet add/remove
     $("#addPlanet").click(function(e) {
@@ -355,7 +347,7 @@ $(document).ready(function(){
         console.log("Phased planet: " + p);
         
         if (K.getNplanets() < p) {
-            uialert("There is no planet " + p + " in the current fit.");
+            uialert("There is no planet " + p + " in the current fit.", "#top-plot");
             $("#phased-planet").val(1);
         } else {
             K.setPhasedPlanet(p);
