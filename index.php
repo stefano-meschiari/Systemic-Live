@@ -27,7 +27,7 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
   </head>
 
   <body>
-    <script src="js/jquery.1.9.1.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="js/jcanvas.min.js" defer></script>
     <script src="js/underscore-min.js"></script>

@@ -705,6 +705,7 @@ K = function() {
     };
     
 	  var refreshShare = function() {
+        
         var url = BASEURL + "?";
         url += "sys=" + encodeURI(currentSystem);
         url += "&np=" + K_getNplanets(k);
@@ -761,12 +762,8 @@ K = function() {
 		
 	  var setRVPlot = function(type) {
 		    RVPLOT = type;
-		    refreshRVPlot();
-		    refreshRVLine();
+		    refresh();
 	  };
-
-    
-
 
     var exec = function(pre, fun, post, delay) {
         delay = delay || 0;
