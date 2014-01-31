@@ -8,7 +8,7 @@ $last_updated = date ("F d, Y", filemtime('index.php'));
 
 $needs_benchmark = false;
 if (!isset($_COOKIE['systemiclive-' . $ver])) {
-  setcookie("systemiclive-" . $ver, 'checked', time() + 60*60*24 * 365.25);
+  setcookie("systemiclive-" . $ver, 'checked', time() + 60*60*24 * 365.25, '/');
   $needs_benchmark = true;
 };
 
@@ -169,14 +169,34 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
 		      </ul>
 		      
 			    <div class="box" id="bottom-plot">
-            
+            <form id="ps-toolbox" class="navbar-form navbar-left">
+               <div class="navbar-group">
+                 Show power between:
+                 <input type="text" id="ps-from" placeholder="days" value="1" size=10>
+                 and
+                 <input type="text" id="ps-to" placeholder="days" value="20000" size=10>
+                 days.
+
+                 <button type="button" class="btn btn-default navbar-btn" id="ps-set">Set</button>
+                 <button type="button" class="btn btn-default navbar-btn" id="ps-reset">Reset</button>
+               </div>
+            </form>
+
 		        <div id="psplot" class="plot">
 		        </div>
-          </div>
-		      <div class="btn-group" style="float:right">
+            <div class="btn-group" style="float:right">
 		        <button type="button" class="btn btn-info btn-xs" id="help_psplot"><span class="glyphicon glyphicon-question-sign"></span></button>
-		        
+		        </div>
 		      </div>
+
+          <div class="clearseparator"></div>
+		      <div class="panel panel-default">
+            <div class="panel-heading">
+		          ABOUT THIS STAR
+            </div>
+            <div class="panel-body" id="about-star">
+            </div>
+          </div>
 	      </div>
 	      <div class="col-md-5">
 		      <div id="statistics" class="panel panel-info">

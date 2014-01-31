@@ -13,13 +13,21 @@ function uialert(text, container, delay) {
     }, 3000);
 }
 
+function about(sys) {
+    $("#about-star").html("Loading information...");
+    $.get('star.php?star=' + encodeURIComponent(sys),
+         function(data) {
+            $("#about-star").html(data); 
+         });
+}
+
 $(document).ready(function(){
     // Initialize top systems combobox
     $('.combobox').select2({width:"300"});
     
     $("#systems").click(function() {
         $("#rv").click();
-	      _.defer(function() { K.loadSys($("#systems").val()); });
+	      _.defer(function() { K.loadSys($("#systems").val()); about($("#systems").val()); });
     });
     
     // Buttons
@@ -156,7 +164,7 @@ $(document).ready(function(){
 	      tooltip: {
 	          enabled:true,
 	          formatter: function() {
-		            return 'Period: ' + Math.pow(10, this.x).toFixed(2) + ", power: " + this.y.toFixed(2) + "<br>Estimated false alarm probability: " + K.getFAPforPeriod(this.x).toPrecision(5);
+		            return 'Period: ' + Math.pow(10, this.x).toFixed(4) + ", power: " + this.y.toFixed(2) + "<br>Estimated false alarm probability: " + K.getFAPforPeriod(this.x).toPrecision(5);
 	          }
 	      },
 	      legend: {
@@ -377,15 +385,35 @@ $(document).ready(function(){
     $("#dynamical-plot").change(function() {
         K.setIntegratePlot($(this).prop('selectedIndex'));
     });
+
+    $("#ps-set").click(function() {
+        var min = (+$("#ps-from").val()) | 0;
+        var max = (+$("#ps-to").val()) | 0;
+        if (max < min || min < 0.01 || max < 0.01 || min > 1e5 || max > 1e5) {
+            uialert("Invalid range for periodogram.", "#bottom-plot");
+            return;
+        }
+        if (min == max) {
+            max = min + 1;
+            $("#ps-to").val(max);
+        };
+        K.setPSRange(min, max);
+    });
+    $("#ps-reset").click(function() {
+        K.setPSRange(1, 2e4);
+    });
     
     K.init();
     
     if (_.parameter("sys")) {
         $("#systems").select2("val", _.parameter("sys"));
+        
         _.defer(function() { K.loadFromURL(); });
+        about(_.parameter('sys'));
     } else {
-        K.loadSys("14Her.sys");
         K.resetSeries();
+        K.loadSys("14Her.sys");
+        about('14Her.sys');
     }
 
     _.defer(function() {

@@ -18,6 +18,12 @@
   width:100%;
 }
 
+#ps-toolbox {
+  padding-bottom: 3px;
+  border-bottom:1px solid #ddd;
+  width:100%;
+}
+
 #phased-planet {
   width:50px;
 }

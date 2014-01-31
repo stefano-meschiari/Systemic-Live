@@ -12,7 +12,7 @@ _.parameter = function(name) {
 K = function() {
 	  // BEGIN_AUTO
 	// Constants
-	var SYSTEMIC_VERSION = 2.1200;
+	var SYSTEMIC_VERSION = 2.1400;
 	var MAX_LINE = 8192;
 	var T_RV = 0;
 	var T_PHOTO = 1;
@@ -394,12 +394,24 @@ K = function() {
         K_setIntRelAcc(k, 1e-11);
         K_setIntAbsAcc(k, 1e-11);
 	  };
-	  
+
+    var PSMIN = 1;
+    var PSMAX = 2e4;
+    var setPSRange = function(min, max) {
+        K_getPeriodogramAt(k, -3, min);
+        K_getPeriodogramAt(k, -4, max);
+        PSMIN = min; 
+        PSMAX = max;
+        $("#ps-from").val(min);
+        $("#ps-to").val(max);
+        refreshPSPlot();
+        refreshShare();
+    };
+    
 	  var refreshPSPlot = function() {
         //        return;
         if (K_getNdata(k) == 0)
             return;
-        
 		    var plotter = $("#psplot").highcharts();
 
         if (PSPLOT != "#ps") {
@@ -504,12 +516,12 @@ K = function() {
         }, function() {
             K_integrateForward(k, JS_I_END, nyears, -1, -1);
             refreshIntegratePlot();
-        }, 200);
+        }, 100);
     };
 
     var stepIntegration = function(nyears) {
         var time = K_integrateForward(k, JS_I_STEP, nyears, -1, -1);
-        console.log(time);
+
         
         if (time == JS_I_ENDREACHED || stopped)
             return true;
@@ -526,6 +538,7 @@ K = function() {
         }
         integrateData.years.push(time);
         refreshIntegratePlot();
+
         return false;
     };
     
@@ -640,23 +653,16 @@ K = function() {
 		    var rvline = [];
         var i;
         
-		    if (K_getNplanets(k) > 0) {
-			      var minP = K_getElement(k, 1, PER);
-			      for (i = 2; i <= K_getNplanets(k); i++)
-				        minP = Math.min(minP, K_getElement(k, i, PER));
-			      var tmin = K_getDataAt(k, ALL, 0, 0);
-			      var tmax = K_getDataAt(k, ALL, K_getNdata(k)-1, 0);
-			      SAMP = Math.floor((tmax-tmin)/(minP/40));
-		    } 
-		    SAMP = Math.max(SAMP, 20);
-		    SAMP = Math.min(SAMP, 800);
-        
+		    
 		    if (RVPLOT == "#rv") {
-			      console.log(tmin);
-            console.log(tmax);
-			      if (K_getRVLine(k, -SAMP, 0) > 0) {
-				        for (i = 0; i < SAMP; i++)
+			      
+            SAMP = K_getRVLine(k, -1, 5000);
+
+            
+			      if (SAMP > 0) {
+				        for (i = 0; i < SAMP; i++) {
 					          rvline.push([K_getRVLine(k, i, 0), K_getRVLine(k, i, 1)]);
+                }
 			      }
 			      plotter.series[RVLINE].show();
             plotter.series[RVLINE].update({showInLegend:true});
@@ -669,7 +675,8 @@ K = function() {
                 uialert("Selected planet in phased radial velocity plot is " + PHASED_PLANET + ", but there are not enough planets in the fit.");
                 return;
             }
-            
+
+            SAMP = 1000;
             if (K_getPhasedRVLine(k, PHASED_PLANET, -SAMP, -1) > 0) {
                 for (i = 0; i < SAMP; i++)
                     rvline.push([K_getPhasedRVLine(k, -1, i, 0), K_getPhasedRVLine(k, -1, i, 1)]);
@@ -677,7 +684,7 @@ K = function() {
             
 			      plotter.series[RVLINE].setData(rvline, true);            
 			      plotter.series[RVLINE].show();
-            plotter.series[i].update({showInLegend:true});
+            plotter.series[RVLINE].update({showInLegend:true});
             
         }
 	  };
@@ -748,17 +755,17 @@ K = function() {
 	  
 	  var prettyValue = function(v) {
 		    if (Math.abs(v) > 1e-2)
-			      v = v.toFixed(3);
-		    else if (Math.abs(v) > 1e-3)
 			      v = v.toFixed(4);
-		    else if (Math.abs(v) > 1e-4)
+		    else if (Math.abs(v) > 1e-3)
 			      v = v.toFixed(5);
+		    else if (Math.abs(v) > 1e-4)
+			      v = v.toFixed(6);
 		    else if (Math.abs(v) > 1e-5)
-			      v = v.toFixed(6);
-		    else if (Math.abs(v) > 1e-6)
 			      v = v.toFixed(7);
+		    else if (Math.abs(v) > 1e-6)
+			      v = v.toFixed(8);
 		    else if (Math.abs(v) > 1e-7)
-			      v = v.toFixed(6);
+			      v = v.toFixed(9);
 		    else
 			      v = 0.;
 		    return v;
@@ -828,11 +835,15 @@ K = function() {
             }
         for (i = 0; i < MAX_SETS; i++)
             if (K_getPar(k, i) != 0.)
-                url += '&o' + i + "=" + K_getPar(k, i);
+                url += '&o' + i + "=" + shortenNumber(K_getPar(k, i));
 
         if (_.parameter("debug"))
             url += "&debug=true";
         url += "&im=" + K_getIntMethod(k);
+        if (PSMIN != 1.)
+            url += "&psmin=" + shortenNumber(PSMIN);
+        if (PSMAX != 2e4)
+            url += "&psmax=" + shortenNumber(PSMAX);
         
         $("#share").val(url);
     };
@@ -938,13 +949,15 @@ K = function() {
         var delta = 1e-2;
         exec(null, function() {
             console.log(chi2);
-            K_minimizeWithTimeout(k, 5);
+            K_minimizeWithTimeout(k, 15);
+            K_calculate(k);
             var chi2_2 = K_getChi2(k);
             console.log(chi2_2);
 
             if (isNaN(chi2_2) || (chi2 - chi2_2)/chi2 < delta || stopped) {
+                console.log("After refresh: ", K_getChi2(k));                
                 refresh();
-                
+                console.log("After refresh: ", K_getChi2(k));
                 return true;
             } else {
                 chi2 = chi2_2;
@@ -963,7 +976,7 @@ K = function() {
 		    init();
 		    K_addDataFromSystem(k, "datafiles/" + sysname);
 		    if (K_getNsets(k) > MAX_SETS) {
-			      alert("Could not open " + system);
+			      alert("Could not open " + sysname);
 			      loadSys('datafiles/14Her.sys');
 			      return;
 		    }
@@ -1035,6 +1048,13 @@ K = function() {
             K_setPar(k, i, v);
         }
 
+        if (_.parameter("psmin"))
+            PSMIN = _.parameter("psmin");
+        if (_.parameter("psmax"))
+            PSMAX = _.parameter("psmax");
+        setPSRange(PSMIN, PSMAX);
+            
+
         K_setIntMethod(k, +(_.parameter('im') || KEPLER));
         refresh();
     };
@@ -1090,7 +1110,7 @@ K = function() {
     
     
 	  return {init:init, refresh:refresh,  loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, isIntegrated:isIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark, loadFromURL: loadFromURL, stop:stop,
-            addRefreshCallback:addRefreshCallback, setPhasedPlanet: setPhasedPlanet, integrateForward:integrateForward, setIntegratePlot:setIntegratePlot, resetSeries:resetSeries, k:function() { return k; },
+            addRefreshCallback:addRefreshCallback, setPhasedPlanet: setPhasedPlanet, integrateForward:integrateForward, setIntegratePlot:setIntegratePlot, resetSeries:resetSeries, setPSRange:setPSRange, k:function() { return k; },
             getNplanets: function() { return K_getNplanets(k); }};
 } ();
 
