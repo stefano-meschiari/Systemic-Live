@@ -1,7 +1,7 @@
 <?php
 $elements = array("<strong>Period</strong> [days]", "<strong>Mass</strong> [Mj]", "<strong>Mean Anomaly</strong> [deg]", "<strong>Eccentricity</strong>",
                   "<strong>Long. of peri.</strong> [deg]");
-$ver = '0.2';
+$ver = '0.3';
 $MAX_SETS = 7;
 $MAX_PLANETS = 6;
 $last_updated = date ("F d, Y", filemtime('index.php'));
@@ -11,10 +11,9 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
   setcookie("systemiclive-" . $ver, 'checked', time() + 60*60*24 * 365.25, '/');
   $needs_benchmark = true;
 };
-
+header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 ?>
 <!doctype html>
-<!-- manifest="cache.manifest.php"  -->
 <html lang="en-us">
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,7 +21,7 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
 	  <link rel="stylesheet" media="all" href="bootstrap/css/bootstrap.min.css">
 	  <link rel="stylesheet" media="all" href="bootstrap/css/bootstrap-theme.min.css">
 	  <link rel="stylesheet" href="select2/select2.css">	
-	  <link rel="stylesheet" href="css/systemic.css">
+	  <link rel="stylesheet" href="css/systemic.css?v=<?= $ver ?>">
 	  <link rel="stylesheet" media="print" href="css/print.css">
   </head>
 
@@ -87,12 +86,14 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
 			  </button>
 			  <ul class="dropdown-menu" role="menu">
 			    <li><a href="http://www.stefanom.org" target="_new">(c) 2013-2014, Stefano Meschiari</a></li>
-          <li class="divider"></li>          
-          <li><a href="https://github.com/stefano-meschiari/Systemic-Live">Fork me on Github!</a></li>
+          <li class="divider"></li>
+          <li><a href="http://www.stefanom.org/category/systemic-online" target="_new">Tutorials</a></li>
           <li><a href="#">Last updated: <strong><?= $last_updated ?></strong></a></li>
           <li class="divider"></li>
 			      <li><a href="http://stefanom.org/?systemic" target="_new">Full version of Systemic</a></li>
 			      <li><a href="http://goo.gl/ZDcj9F" target="_new">Papers about Systemic</a></li>
+            <li><a href="https://github.com/stefano-meschiari/Systemic-Live">Fork me on Github!</a></li>
+
 			  </ul>			  
 		  </div>
 		  
@@ -172,9 +173,9 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
             <form id="ps-toolbox" class="navbar-form navbar-left">
                <div class="navbar-group">
                  Show power between:
-                 <input type="text" id="ps-from" placeholder="days" value="1" size=10>
+                 <input type="text" id="ps-from" placeholder="days" value="1" size=6>
                  and
-                 <input type="text" id="ps-to" placeholder="days" value="20000" size=10>
+                 <input type="text" id="ps-to" placeholder="days" value="20000" size=6>
                  days.
 
                  <button type="button" class="btn btn-default navbar-btn" id="ps-set">Set</button>
@@ -184,19 +185,17 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
 
 		        <div id="psplot" class="plot">
 		        </div>
-            <div class="btn-group" style="float:right">
-		        <button type="button" class="btn btn-info btn-xs" id="help_psplot"><span class="glyphicon glyphicon-question-sign"></span></button>
-		        </div>
+
+            <table class="table table-condensed" id="pstable">
+              <tr>
+                <th>Period [d]</th><th>Power</th><th>False alarm probability</th>
+              </tr>
+              <?php for ($i = 0; $i < 10; $i++): ?>
+                <tr><td id="pstable_p<?=$i ?>"></td><td id="pstable_power<?=$i ?>"></td><td  id="pstable_fap<?=$i ?>"></td></tr>
+              <?php endfor; ?>
+            </table>            
 		      </div>
 
-          <div class="clearseparator"></div>
-		      <div class="panel panel-default">
-            <div class="panel-heading">
-		          ABOUT THIS STAR
-            </div>
-            <div class="panel-body" id="about-star">
-            </div>
-          </div>
 	      </div>
 	      <div class="col-md-5">
 		      <div id="statistics" class="panel panel-info">
@@ -337,6 +336,16 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
                 <em class="hint">Copy and paste this URL to save/retrieve the current fit.</em>
               </div>
             </div>
+
+            <div class="clearseparator"></div>
+		      <div class="panel panel-default">
+            <div class="panel-heading">
+		          ABOUT THIS STAR
+            </div>
+            <div class="panel-body" id="about-star">
+            </div>
+          </div>
+
           </div>
 
           <?php
@@ -345,6 +354,6 @@ if (!isset($_COOKIE['systemiclive-' . $ver])) {
           
           ?>
 
-          <script type="text/javascript" src="js/ui<?= ($_GET['debug'] ? '' : '.min') ?>.js"></script>
+          <script type="text/javascript" src="js/ui<?= ($_GET['debug'] ? '' : '.min') ?>.js?v=<?=$ver ?>"></script>
   </body>
 </html>

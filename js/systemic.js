@@ -5,14 +5,15 @@ _.clone = function(obj) {
     return JSON.parse(JSON.stringify(obj));
 };
 
-_.parameter = function(name) {
-    return(decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search)||[,""])[1].replace(/\+/g, '%20'))||null);
+_.parameter = function(name, url) {
+    url = url || location.search;
+    return(decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(url)||[,""])[1].replace(/\+/g, '%20'))||null);
 };
 
 K = function() {
 	  // BEGIN_AUTO
 	// Constants
-	var SYSTEMIC_VERSION = 2.1400;
+	var SYSTEMIC_VERSION = 2.1300;
 	var MAX_LINE = 8192;
 	var T_RV = 0;
 	var T_PHOTO = 1;
@@ -144,7 +145,13 @@ K = function() {
 	var JS_I_GET = 2;
 	var JS_I_END = 3;
 	var JS_I_ENDREACHED = -1;
-	var M_PI = 3.14159265e+00;
+	var JS_PS_SET_PMIN = -4;
+	var JS_PS_SET_PMAX = -5;
+	var JS_PS_SETUP = -1;
+	var JS_PS_GET_FAPS_LEVELS = -2;
+	var JS_PS_GET_TOP_PERIODS = -6;
+	var JS_PS_GET_TOP_POWERS = -7;
+	var JS_PS_GET_TOP_FAPS = -8;
 	var PS_TIME = 0;
 	var PS_Z = 1;
 	var PS_FAP = 2;
@@ -398,8 +405,8 @@ K = function() {
     var PSMIN = 1;
     var PSMAX = 2e4;
     var setPSRange = function(min, max) {
-        K_getPeriodogramAt(k, -3, min);
-        K_getPeriodogramAt(k, -4, max);
+        K_getPeriodogramAt(k, JS_PS_SET_PMIN, min);
+        K_getPeriodogramAt(k, JS_PS_SET_PMAX, max);
         PSMIN = min; 
         PSMAX = max;
         $("#ps-from").val(min);
@@ -421,21 +428,29 @@ K = function() {
             plotter.series[0].show();
         }
 
-		    var samples = K_getPeriodogramAt(k, -1, 0);
+		    var samples = K_getPeriodogramAt(k, JS_PS_SETUP, 0);
 
 		    var data = [];
-		    for (var i = 0; i < samples; i++)
+        var i;
+		    for (i = 0; i < samples; i++)
 			      data.push([Math.log(K_getPeriodogramAt(k, i, 0))/Math.LN10, K_getPeriodogramAt(k, i, 1),
 			                 K_getPeriodogramAt(k, i, 2)]);
 
 		    plotter.series[0].setData(data, true);
 
-		    for (var i = 1; i <= 3; i++) {
-			      var fap_z = K_getPeriodogramAt(k, -2, i);
+		    for (i = 1; i <= 3; i++) {
+			      var fap_z = K_getPeriodogramAt(k, JS_PS_GET_FAPS_LEVELS, i);
 			      plotter.series[i].setData([[data[0][0], fap_z], [data[data.length-1][0], fap_z]]);
 		    }
 		    
 		    PSDATA = data;
+
+        for (i = 0; i < 10; i++) {
+            $("#pstable_p" + i).html(K_getPeriodogramAt(k, JS_PS_GET_TOP_PERIODS, i).toFixed(4));
+            $("#pstable_power" + i).html(K_getPeriodogramAt(k, JS_PS_GET_TOP_POWERS, i).toFixed(4));
+            $("#pstable_fap" + i).html(K_getPeriodogramAt(k, JS_PS_GET_TOP_FAPS, i).toExponential(2));
+        }
+        
 	  };
 
     var eps = 1e-6;
@@ -669,7 +684,7 @@ K = function() {
 			      plotter.series[RVLINE].setData(rvline, true);
 		    } else if ((RVPLOT == "#res") || (RVPLOT == "#dynamical")) {
 			      plotter.series[RVLINE].hide();
-            plotter.series[i].update({showInLegend:false});
+            plotter.series[RVLINE].update({showInLegend:false});
 		    } else if (RVPLOT == "#phased") {
             if (PHASED_PLANET < 1 || PHASED_PLANET > K_getNplanets(k)) {
                 uialert("Selected planet in phased radial velocity plot is " + PHASED_PLANET + ", but there are not enough planets in the fit.");
@@ -771,6 +786,7 @@ K = function() {
 		    return v;
 		    
 	  };
+
 	  
 	  var refreshPlanetPanel = function() {
 		    for (var i = 1; i <= K_getNplanets(k); i++) {
@@ -837,7 +853,7 @@ K = function() {
             if (K_getPar(k, i) != 0.)
                 url += '&o' + i + "=" + shortenNumber(K_getPar(k, i));
 
-        if (_.parameter("debug"))
+        if (_.parameter("debug", SYSTEMIC_PARAMETERS))
             url += "&debug=true";
         url += "&im=" + K_getIntMethod(k);
         if (PSMIN != 1.)
@@ -846,6 +862,10 @@ K = function() {
             url += "&psmax=" + shortenNumber(PSMAX);
         
         $("#share").val(url);
+
+        if (window.history.replaceState) {
+            window.history.replaceState({},"", url);
+        }
     };
 
     var refreshCallbacks = [];
@@ -1031,31 +1051,31 @@ K = function() {
 	  };
 
     var loadFromURL = function() {
-        K.loadSys(_.parameter("sys"));
+        K.loadSys(_.parameter("sys",  SYSTEMIC_PARAMETERS));
         
         var i, v;
-        var np = +(_.parameter("np") || 0);
+        var np = +(_.parameter("np",  SYSTEMIC_PARAMETERS) || 0);
         for (i = 1; i <= np; i++) {
             addPlanet(100.);
             for (var j = 0; j < URLPARAMS.length; j++) {
-                v = +(_.parameter(URLPARAMS[j] + i) || 0.0);
+                v = +(_.parameter(URLPARAMS[j] + i,  SYSTEMIC_PARAMETERS) || 0.0);
                 K_setElement(k, i, j, v);
             }
         }
 
         for (i = 0; i < MAX_SETS; i++) {
-            v = +(_.parameter('o' + i) || 0.0);
+            v = +(_.parameter('o' + i, SYSTEMIC_PARAMETERS) || 0.0);
             K_setPar(k, i, v);
         }
 
-        if (_.parameter("psmin"))
-            PSMIN = _.parameter("psmin");
-        if (_.parameter("psmax"))
-            PSMAX = _.parameter("psmax");
+        if (_.parameter("psmin",  SYSTEMIC_PARAMETERS))
+            PSMIN = +(_.parameter("psmin",  SYSTEMIC_PARAMETERS) || 1);
+        if (_.parameter("psmax",  SYSTEMIC_PARAMETERS))
+            PSMAX = +(_.parameter("psmax") || 2e4);
         setPSRange(PSMIN, PSMAX);
             
 
-        K_setIntMethod(k, +(_.parameter('im') || KEPLER));
+        K_setIntMethod(k, +(_.parameter('im',  SYSTEMIC_PARAMETERS) || KEPLER));
         refresh();
     };
 	  

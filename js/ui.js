@@ -21,6 +21,9 @@ function about(sys) {
          });
 }
 
+SYSTEMIC_PARAMETERS = location.search;
+
+
 $(document).ready(function(){
     // Initialize top systems combobox
     $('.combobox').select2({width:"300"});
@@ -158,8 +161,7 @@ $(document).ready(function(){
     
     $('#psplot').highcharts({
 	      chart: {
-	          type:'line',
-	          zoomType: 'xy'
+	          type:'line'
 	      },
 	      tooltip: {
 	          enabled:true,
@@ -416,6 +418,10 @@ $(document).ready(function(){
         about('14Her.sys');
     }
 
+    K.addRefreshCallback(function() {
+
+    });
+    
     _.defer(function() {
        uialert("Welcome to Systemic Live!"); 
     });

@@ -1,3 +1,5 @@
+
+
 #systems {
 	width:300px;
 }
@@ -37,6 +39,15 @@
 
 .plot {
 	margin-bottom:10px;
+}
+
+#pstable tr th {
+  text-align:right;
+}
+
+#pstable tr td {
+  text-align:right;
+  font-family:'Menlo', monospace;
 }
 
 .box {

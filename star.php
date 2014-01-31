@@ -17,7 +17,7 @@ if ($altnames[$star])
   $star = $altnames[$star];
 
 $url = "http://simbad.u-strasbg.fr/simbad/sim-basic?Ident=%s&submit=SIMBAD+search";
-//sleep(2);
+sleep(2);
 $url = sprintf($url, urlencode($star));
 $simbad = file_get_contents($url);
 

@@ -2,8 +2,8 @@
 
 helpdoc = {
 help_top:"\
-<h5>Tutorial</h5>\
-<a href='tutorial.php' target='_new'>Go to tutorial</a>\
+<h5>Tutorials</h5>\
+<a href='http://www.stefanom.org/category/systemic-live/' target='_new'>Go to tutorial</a>\
 <h5>Systems</h5>\
 The System dropdown lists all the available stars that have \
 public radial velocity observations associated with them. Each star \

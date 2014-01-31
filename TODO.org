@@ -8,8 +8,11 @@
 - [ ] Clean up Javascript, separate calculations and UI
 
 * Mobile version?
-- [ ] Check that application displays correctly on a couple of form factors
+- [X] Check that application displays correctly on a couple of form factors
 - [ ] Reduce amount of calculations on mobile
 
 * Features
-- [ ] Orbital dynamics with animated orbits
+- [X] Orbital dynamics with animated orbits
+
+* Bugs
+- [ ] Integration method from URL should check the checkbox
