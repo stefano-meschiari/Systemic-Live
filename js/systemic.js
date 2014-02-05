@@ -1,19 +1,9 @@
-// Additional underscore.js utilities
-_.clone = function(obj) {
-    if (obj === undefined)
-        return obj;
-    return JSON.parse(JSON.stringify(obj));
-};
 
-_.parameter = function(name, url) {
-    url = url || location.search;
-    return(decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(url)||[,""])[1].replace(/\+/g, '%20'))||null);
-};
 
 K = function() {
 	  // BEGIN_AUTO
 	// Constants
-	var SYSTEMIC_VERSION = 2.1300;
+	var SYSTEMIC_VERSION = 2.1400;
 	var MAX_LINE = 8192;
 	var T_RV = 0;
 	var T_PHOTO = 1;
@@ -152,6 +142,7 @@ K = function() {
 	var JS_PS_GET_TOP_PERIODS = -6;
 	var JS_PS_GET_TOP_POWERS = -7;
 	var JS_PS_GET_TOP_FAPS = -8;
+	var M_PI = 3.14159265e+00;
 	var PS_TIME = 0;
 	var PS_Z = 1;
 	var PS_FAP = 2;
@@ -225,6 +216,7 @@ K = function() {
 	var ok_vector_int_copy = Module.cwrap('ok_vector_int_copy', 'number', ['number']);	// gsl_vector_int* ok_vector_int_copy(const gsl_vector_int* src)
 	var ok_buf_to_matrix = Module.cwrap('ok_buf_to_matrix', 'number', ['number', 'number', 'number']);	// gsl_matrix* ok_buf_to_matrix(double** buf, int rows, int cols)
 	var ok_buf_col = Module.cwrap('ok_buf_col', 'number', ['number', 'number', 'number', 'number']);	// void ok_buf_col(double** buf, double* vector, int col, int nrows)
+	var ok_matrix_column_range = Module.cwrap('ok_matrix_column_range', 'number', ['number', 'number', 'number', 'number']);	// void ok_matrix_column_range(gsl_matrix* m, int col, double* min, double* max)
 	var ok_matrix_remove_row = Module.cwrap('ok_matrix_remove_row', 'number', ['number', 'number']);	// gsl_matrix* ok_matrix_remove_row(gsl_matrix* m, int row)
 	var ok_matrix_remove_column = Module.cwrap('ok_matrix_remove_column', 'number', ['number', 'number']);	// gsl_matrix* ok_matrix_remove_column(gsl_matrix* m, int col)
 	var ok_matrix_int_remove_row = Module.cwrap('ok_matrix_int_remove_row', 'number', ['number', 'number']);	// gsl_matrix_int* ok_matrix_int_remove_row(gsl_matrix_int* m, int row)
@@ -257,8 +249,9 @@ K = function() {
 	var ok_matrix_cols = Module.cwrap('ok_matrix_cols', 'number', ['number']);	// unsigned int ok_matrix_cols(void* v)
 	var ok_vector_block = Module.cwrap('ok_vector_block', 'number', ['number']);	// gsl_block* ok_vector_block(void* v)
 	var ok_matrix_block = Module.cwrap('ok_matrix_block', 'number', ['number']);	// gsl_block* ok_matrix_block(void* v)
-	var ok_resample_curve = Module.cwrap('ok_resample_curve', 'number', ['number', 'number', 'number', 'number', 'number']);	// gsl_matrix* ok_resample_curve(gsl_matrix* curve, int timecol, int valcol, int every, double top)
+	var ok_resample_curve = Module.cwrap('ok_resample_curve', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);	// gsl_matrix* ok_resample_curve(gsl_matrix* curve, const int xcol, const int ycol, const double peaks_frac, const int target_points,     const int target_tolerance, double* start_tolerance, const int max_steps, const bool log_x)
 	var ok_file_readable = Module.cwrap('ok_file_readable', 'number', ['number']);	// bool ok_file_readable(char* fn)
+	var ok_rivector_alloc = Module.cwrap('ok_rivector_alloc', 'number', ['number']);	// ok_rivector* ok_rivector_alloc(const int maxlength)
 	var ok_periodogram_ls = Module.cwrap('ok_periodogram_ls', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);	// gsl_matrix* ok_periodogram_ls(const gsl_matrix* data, const unsigned int samples, const double Pmin, const double Pmax, const int method,         unsigned int timecol, unsigned int valcol, unsigned int sigcol, ok_periodogram_workspace* p)
 	var ok_periodogram_boot = Module.cwrap('ok_periodogram_boot', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);	// gsl_matrix* ok_periodogram_boot(const gsl_matrix* data, const unsigned int trials, const unsigned int samples,         const double Pmin, const double Pmax, const int method,         const unsigned int timecol, const unsigned int valcol, const unsigned int sigcol,         const unsigned long int seed, ok_periodogram_workspace* p, ok_progress prog)
 	var ok_periodogram_full = Module.cwrap('ok_periodogram_full', 'number', ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);	// gsl_matrix* ok_periodogram_full(ok_kernel* k, int type, int algo, bool circular, unsigned int sample,         const unsigned int samples, const double Pmin, const double Pmax)
@@ -671,8 +664,14 @@ K = function() {
 		    
 		    if (RVPLOT == "#rv") {
 			      
-            SAMP = K_getRVLine(k, -1, 5000);
-
+            SAMP = K_getRVLine(k, -1, 2000);
+            console.log(SAMP);
+            
+            if (SAMP < 0) {
+                $("#alert-short-period").show();
+                SAMP *= -1;
+            } else
+                $("#alert-short-period").hide();
             
 			      if (SAMP > 0) {
 				        for (i = 0; i < SAMP; i++) {

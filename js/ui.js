@@ -1,3 +1,4 @@
+
 function uialert(text, container, delay) {
     var alertDiv = $('<div class="alert alert-warning alert-dismissable">' +
                            text + '<button type="button" class="close" data-dismiss="alert">&times;</button>');
@@ -37,6 +38,14 @@ $(document).ready(function(){
     $("#optimize").click(function() {
 	      K.optimize();
     });
+
+    var rvtooltip = function() {
+        var d = JDtoDateArray(this.x);
+        return '<span style="color:' + this.series.color + '">' + this.series.name.replace('datafiles/', "") + '</span><br>' +
+            'Date: <strong>' + d[0] + '/' + d[1] + '/' + d[2] + '</strong><br>' +
+            'Julian Date: <strong>' + this.x.toFixed(2) + '</strong><br>' + 
+            'RV Value: <strong>' + this.y.toFixed(2) + ' m/s</strong>';
+    };
     
     // Initialize charts
     $('#rvplot').highcharts({
@@ -45,7 +54,8 @@ $(document).ready(function(){
 	          zoomType: 'xy'
 	      },
 	      tooltip: {
-	          enabled:false
+	          enabled:true,
+            formatter:rvtooltip
 	      },
 	      legend: {
 	          //enabled:false
@@ -74,43 +84,54 @@ $(document).ready(function(){
 		            marker:{symbol:"circle"},
 		            visible:false, 
                 showInLegend:false
+                
 	          },
 	          {
 		            color:COLORS[1],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false, showInLegend:false			  
+		            visible:false, showInLegend:false
+                
 	          },
 	          {
 		            color:COLORS[2],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false, showInLegend:false			  
+		            visible:false, showInLegend:false
+                
 	          },
 	          {
 		            color:COLORS[3],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false, showInLegend:false			  
+		            visible:false, showInLegend:false
+                
 	          },
 	          {
 		            color:COLORS[4],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false, showInLegend:false			  
+		            visible:false, showInLegend:false
+			          
 	          },
 	          {
 		            color:COLORS[5],
 		            name:"",
 		            marker:{symbol:"circle"},			  
-		            visible:false, showInLegend:false		  
+		            visible:false, showInLegend:false
+                
 	          },
 	          {
 		            color:"black",
 		            type:"line",
 		            name:"RV signal",
                 showInLegend:false,
-		            marker:{enabled:false}
+		            marker:{enabled:false},
+                turboThreshold:1,
+                shadow:false,
+                stickyTracking:false,
+                tooltip:null,
+                enableMouseTracking:false
 	          },
             {
 		            color:COLORS[0],
@@ -199,7 +220,8 @@ $(document).ready(function(){
 		            color:"black",
 		            type:"line",
 		            name:"Power",
-		            marker:{enabled:false}
+		            marker:{enabled:false},
+                turboThreshold:1
 	          },
 	          {
 		            color:"black",
@@ -241,9 +263,15 @@ $(document).ready(function(){
         }
 
 	      $(this).tab('show');
-        
+        $("#alert-short-period").hide();
         $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
         $("#dynamical-toolbox").css("display", (option == "#dynamical" ? "block" : "none"));
+
+        if (option == "#rv" || option == "#res")
+            $("#rvplot").highcharts().tooltip.enabled = true;
+        else
+            $("#rvplot").highcharts().tooltip.enabled = false;
+        
 	      K.setRVPlot($(e.target).attr('href'));
     });
 
@@ -419,12 +447,15 @@ $(document).ready(function(){
     }
 
     K.addRefreshCallback(function() {
-
+        $("#rvplot").highcharts().setSize(600, 400);
+        $("#psplot").highcharts().setSize(600, 400);
     });
     
     _.defer(function() {
        uialert("Welcome to Systemic Live!"); 
     });
+
+    
 });
 
 // Activate offset sliders

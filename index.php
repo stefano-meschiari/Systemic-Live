@@ -32,22 +32,30 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
     <script src="js/underscore-min.js"></script>
     <script>
      var Module = {
-       preRun: [],
+       /*
+       'preRun': [
+         function() {
+           alert("prerun");
+           FS.init(null,
+                   function(text) {
+               alert(text);
+             }, function(text) {
+               alert(text);
+             });
+         }
+       ],
        postRun: [],
-       print: function(text) {
-	       console.log(text);
+       'print': function(text) {
+	       alert(text);
        },
        printErr: function(text) {
          text = Array.prototype.slice.call(arguments).join(' ');
-         if (0) { // XXX disabled for safety typeof dump == 'function') {
-                 dump(text + '\n'); // fast, straight to the real console
-                 } else {
-           console.log(text);
-         }
-       }
+         console.log(text);
+       }*/
      };
     </script>
-
+    <script type="text/javascript" src="js/utils.js"></script>
+    
     <?php
     if ($_GET['debug']) {
     ?>
@@ -127,6 +135,10 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 
 		      </ul>
           <div class="box" id="top-plot">
+            
+		        <div id="rvplot" class="plot">
+		        </div>
+
             <form id="phased-toolbox" class="navbar-form navbar-left">
               <div class="navbar-group">
               <label for="phased-planet">Radial velocity curve for planet:</label>
@@ -157,8 +169,11 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
                </div>
             </form>
 
-		        <div id="rvplot" class="plot">
-		        </div>
+            <div class="alert alert-warning" id="alert-short-period">
+              One of the planets has a very short period compared to the time span of the data.
+              The radial velocity curve may be distorted or unreadable. Switch to the Phased Radial Velocity panel to see
+              a more useful radial velocity curve.
+            </div>
 		        <div class="btn-group" style="float:right">
 		          <button type="button" class="btn btn-info btn-xs" id="help_rvplot"><span class="glyphicon glyphicon-question-sign"></span></button>
 		        </div>
@@ -170,6 +185,10 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 		      </ul>
 		      
 			    <div class="box" id="bottom-plot">
+
+		        <div id="psplot" class="plot">
+		        </div>
+
             <form id="ps-toolbox" class="navbar-form navbar-left">
                <div class="navbar-group">
                  Show power between:
@@ -182,10 +201,7 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
                  <button type="button" class="btn btn-default navbar-btn" id="ps-reset">Reset</button>
                </div>
             </form>
-
-		        <div id="psplot" class="plot">
-		        </div>
-
+            
             <table class="table table-condensed" id="pstable">
               <tr>
                 <th>Period [d]</th><th>Power</th><th>False alarm probability</th>
