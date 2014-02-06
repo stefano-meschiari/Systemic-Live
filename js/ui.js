@@ -40,11 +40,19 @@ $(document).ready(function(){
     });
 
     var rvtooltip = function() {
-        var d = JDtoDateArray(this.x);
-        return '<span style="color:' + this.series.color + '">' + this.series.name.replace('datafiles/', "") + '</span><br>' +
+        var pt = K.getRVPlot();
+        if (pt == "#rv" || pt == "#res") {
+            var d = JDtoDateArray(this.x);
+            return '<span style="color:' + this.series.color + '">' + this.series.name.replace('datafiles/', "") + '</span><br>' +
             'Date: <strong>' + d[0] + '/' + d[1] + '/' + d[2] + '</strong><br>' +
             'Julian Date: <strong>' + this.x.toFixed(2) + '</strong><br>' + 
             'RV Value: <strong>' + this.y.toFixed(2) + ' m/s</strong>';
+        } else if (pt == "#dynamical"){
+            return '<span style="color:' + this.series.color + '">' + this.series.name + "</span><br>" +
+                'Time: <strong>' + this.x.toFixed(2) + '</strong> years<br>' +
+                'Value: <strong>' + this.y.toFixed(4) + "</strong>";
+        } else
+            return false;
     };
     
     // Initialize charts
@@ -267,11 +275,6 @@ $(document).ready(function(){
         $("#phased-toolbox").css("display", (option == "#phased" ? "block" : "none"));
         $("#dynamical-toolbox").css("display", (option == "#dynamical" ? "block" : "none"));
 
-        if (option == "#rv" || option == "#res")
-            $("#rvplot").highcharts().tooltip.enabled = true;
-        else
-            $("#rvplot").highcharts().tooltip.enabled = false;
-        
 	      K.setRVPlot($(e.target).attr('href'));
     });
 
@@ -387,9 +390,46 @@ $(document).ready(function(){
     $("#zoomIn").click(function() { K.zoomInOut(+1); });
     $("#zoomOut").click(function() { K.zoomInOut(-1); });
 
+    $("#orbit-download").click(function() {
+        var img = document.getElementById("orbitalplot").toDataURL("image/png");
+        window.open(img, "_blank");
+    });
+    
     // Select all when clicking on share box
     $("#share").click(function() { this.select(); });
 
+    $("#share-bookmark").click(function() {
+        if (window.sidebar && window.sidebar.addPanel) { // Mozilla Firefox Bookmark
+                window.sidebar.addPanel(document.title,window.location.href,'');
+            } else if(window.external && ('AddFavorite' in window.external)) { // IE Favorite
+                window.external.AddFavorite(location.href,document.title); 
+            } else if(window.opera && window.print) { // Opera Hotlist
+                this.title=document.title;
+                return true;
+            } else { 
+                var na = navigator.userAgent.toLowerCase();
+                
+                if (na.indexOf('chrome') != -1)
+                    uialert("Use 'Bookmark This Page...' from the menu to bookmark this fit.", "#share-panel", -1);
+                else if (na.indexOf('mobile') != -1)
+                    uialert("Use the Bookmark button to bookmark this fit.", "#share-panel", -1);
+                else
+                    uialert("Use 'Add Bookmark...' from the menu to bookmark this fit.", "#share-panel", -1);
+            };
+        return true;
+    });
+
+    $("#share-email").click(function() {
+        var url = $("#share").val();
+        var star = _.parameter("sys").replace(".sys", "");
+        var mailurl = "mailto:someone@email.com?subject=" +
+                       encodeURIComponent("My fit for " + star) +
+                       "&body=" + encodeURIComponent("Here's the link:\n\n" + url);
+        window.location = mailurl;
+        console.log(mailurl);
+    });
+
+    
     $("#phased-planet").change(function() {
         var p = +$("#phased-planet").val();
         console.log("Phased planet: " + p);
@@ -446,10 +486,10 @@ $(document).ready(function(){
         about('14Her.sys');
     }
 
-    K.addRefreshCallback(function() {
-        $("#rvplot").highcharts().setSize(600, 400);
-        $("#psplot").highcharts().setSize(600, 400);
-    });
+    $(window).resize(_.debounce(function() {
+        $("#rvplot").highcharts().setSize($("#top-plot").width() - 20, 400);
+        $("#psplot").highcharts().setSize($("#bottom-plot").width() - 20, 400);
+    }, 300));
     
     _.defer(function() {
        uialert("Welcome to Systemic Live!"); 

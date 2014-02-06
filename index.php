@@ -101,7 +101,7 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 			      <li><a href="http://stefanom.org/?systemic" target="_new">Full version of Systemic</a></li>
 			      <li><a href="http://goo.gl/ZDcj9F" target="_new">Papers about Systemic</a></li>
             <li><a href="https://github.com/stefano-meschiari/Systemic-Live">Fork me on Github!</a></li>
-
+            <li><a href="https://github.com/stefano-meschiari/Systemic-Live/issues">Report a bug</a></li>
 			  </ul>			  
 		  </div>
 		  
@@ -327,6 +327,7 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
 		            <div class="btn-group pull-right">
 		              <button type="button" class="btn btn-default btn-xs" id="zoomIn"><span class="glyphicon glyphicon-zoom-in"></span></button>
 		              <button type="button" class="btn btn-default btn-xs" id="zoomOut"><span class="glyphicon glyphicon-zoom-out"></span></button>
+                  <button type="button" class="btn btn-default btn-xs" id="orbit-download">Download plot</button>
 		              <button type="button" class="btn btn-info btn-xs" id="help_orbit"><span class="glyphicon glyphicon-question-sign"></span></button>
 		              
 		            </div>
@@ -347,9 +348,14 @@ header('Expires: '.gmdate('D, d M Y H:i:s \G\M\T', time() + 3600));
               <div class="panel-heading">
                 SHARE THIS FIT
               </div>
-              <div class="panel-body">
+              <div class="panel-body" id="share-panel">
+                <em class="hint">Copy and paste this URL to save/retrieve the current fit.</em><br>
                 <input class="share" id="share" readonly>
-                <em class="hint">Copy and paste this URL to save/retrieve the current fit.</em>
+                <p>
+                <button class="btn btn-default btn-sm" title="Click to bookmark this fit, so you can retrieve it later." id="share-bookmark">Bookmark</button>
+                <button class="btn btn-default btn-sm" title="Email a link to this fit" id="share-email">Email</button>
+
+                </p>
               </div>
             </div>
 

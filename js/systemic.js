@@ -722,7 +722,7 @@ K = function() {
 			      else
 				        zoomFactor ++;
 		    }
-		    K.refresh('orbit');
+		    refreshOrbit();
 	  };
 	  
 	  var refreshOrbit = function() {
@@ -907,6 +907,10 @@ K = function() {
 		    refresh();
 	  };
 
+    var getRVPlot = function() {
+        return RVPLOT;
+    };
+    
     var disable = function(cb) {
         $("#busy").show(400, function() {
             if (cb)
@@ -1128,7 +1132,7 @@ K = function() {
     };
     
     
-	  return {init:init, refresh:refresh,  loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, isIntegrated:isIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark, loadFromURL: loadFromURL, stop:stop,
+	  return {init:init, refresh:refresh,  loadSys:loadSys, optimize:optimize, setIntegrated:setIntegrated, isIntegrated:isIntegrated, setElement:setElement, setParam:setParam, addPlanet:addPlanet, removePlanet:removePlanet, setRVPlot:setRVPlot, getRVPlot:getRVPlot, zoomInOut:zoomInOut, getFAPforPeriod:getFAPforPeriod, benchmark:benchmark, loadFromURL: loadFromURL, stop:stop,
             addRefreshCallback:addRefreshCallback, setPhasedPlanet: setPhasedPlanet, integrateForward:integrateForward, setIntegratePlot:setIntegratePlot, resetSeries:resetSeries, setPSRange:setPSRange, k:function() { return k; },
             getNplanets: function() { return K_getNplanets(k); }};
 } ();
