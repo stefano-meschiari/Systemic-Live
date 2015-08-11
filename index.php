@@ -2,10 +2,11 @@
 
 $elements = array("<strong>Period</strong> [days]", "<strong>Mass</strong> [Mj]", "<strong>Mean Anomaly</strong> [deg]", "<strong>Eccentricity</strong>",
                   "<strong>Long. of peri.</strong> [deg]");
-$ver = '0.3';
+$ver = '0.31';
 $MAX_SETS = 7;
 $MAX_PLANETS = 6;
-$last_updated = date ("F d, Y", filemtime('index.php'));
+date_default_timezone_set('UTC');
+$last_updated = date("F d, Y", filemtime('index.php'));
 
 $needs_benchmark = false;
 if (!isset($_COOKIE['systemiclive-' . $ver])) {
